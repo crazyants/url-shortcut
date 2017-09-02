@@ -1,0 +1,36 @@
+﻿
+================================================== Cassandra Configuration ==================================================
+
+cassandra.yaml:
+
+Change
+	[from] -> [to]
+
+[authenticator: AllowAllAuthenticator] -> [authenticator: PasswordAuthenticator]
+[authorizer: AllowAllAuthorizer] -> [authorizer: CassandraAuthorizer]
+[cdc_raw_directory: /var/lib/cassandra/cdc_raw] -> [cdc_raw_directory: "C:/Program Files/DataStax-DDC/data/cdc_raw"]
+
+================================================== CS KeySpace Preparation ==================================================
+
+-- Assuming you set a cluster of one datacenter with four racks. Each rack is a server and each server is a node.
+-- NetworkTopologyStrategy is the best for future expansion of the cluster. However, SimpleStrategy is used for development.
+-- replication_factor of 3 makes it reliable when there are four nodes in a datacenter.
+
+CREATE KEYSPACE urldb WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': 3} ;
+
+-- The role urladmin is meant for keyspace alteration during development.
+
+CREATE ROLE urladmin WITH LOGIN = true AND PASSWORD = 'urladmin' ;
+
+GRANT ALL PERMISSIONS ON KEYSPACE urldb TO urladmin ;
+
+-- The role urluser is for the application to access the keyspace to retrieve information.
+
+CREATE ROLE urluser WITH LOGIN = true AND PASSWORD = 'urluser' ;
+
+GRANT SELECT ON KEYSPACE urldb TO urluser ;
+
+GRANT MODIFY ON KEYSPACE urldb TO urluser ;
+
+================================================== KeySpace Table Creation ==================================================
+
