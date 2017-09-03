@@ -1,0 +1,9 @@
+﻿{
+  "Cassandra": {
+    "Host": "127.0.0.1", 
+    "Port": 9042, 
+    "Username": "urluser", 
+    "Password": "urluser", 
+    "Database": "urldb"
+  }
+}
