@@ -12,25 +12,98 @@ Change
 
 ================================================== CS KeySpace Preparation ==================================================
 
--- Assuming you set a cluster of one datacenter with four racks. Each rack is a server and each server is a node.
+-- Assuming you're going to set a cluster of one datacenter with four racks. Each rack is a server and each server is a node.
 -- NetworkTopologyStrategy is the best for future expansion of the cluster. However, SimpleStrategy is used for development.
--- replication_factor of 3 makes it reliable when there are four nodes in a datacenter.
+-- replication_factor of 3 makes it reliable when there are four nodes in a datacenter. It increases availability.
 
-CREATE KEYSPACE urldb WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': 3} ;
+CREATE KEYSPACE url_shortcut WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': 3} ;
 
--- The role urladmin is meant for keyspace alteration during development.
+									<-------------------------------------------------->
+
+-- The role 'urladmin' is meant for keyspace full alteration by the database administrator.
 
 CREATE ROLE urladmin WITH LOGIN = true AND PASSWORD = 'urladmin' ;
 
-GRANT ALL PERMISSIONS ON KEYSPACE urldb TO urladmin ;
+GRANT ALL PERMISSIONS ON KEYSPACE url_shortcut TO urladmin ;
 
--- The role urluser is for the application to access the keyspace to retrieve information.
+									<-------------------------------------------------->
+
+-- The role 'urluser' is for the application to access the keyspace and exchange information.
 
 CREATE ROLE urluser WITH LOGIN = true AND PASSWORD = 'urluser' ;
 
-GRANT SELECT ON KEYSPACE urldb TO urluser ;
+GRANT SELECT ON KEYSPACE url_shortcut TO urluser ;
 
-GRANT MODIFY ON KEYSPACE urldb TO urluser ;
+GRANT MODIFY ON KEYSPACE url_shortcut TO urluser ;
 
 ================================================== KeySpace Table Creation ==================================================
 
+-- A counter table to count the total number of URLs stored. It increases as new URLs stored.
+
+CREATE TABLE url_shortcut.tbl_counters (
+	key TEXT, 
+	counter COUNTER, 
+	PRIMARY KEY (key)
+) ;
+
+									<-------------------------------------------------->
+
+-- The table below stores the time when the keyspace is created.
+-- ***DO NOT, I repeat, DO NOT modify this table and its content once it's initiated.***
+-- The field time DOES play a role in encrypting URLs.
+
+CREATE TABLE url_shortcut.tbl_times (
+	key TEXT, 
+	created_time TIMESTAMP, 
+	PRIMARY KEY (key)
+) ;
+
+-- Initiate the time.
+
+UPDATE url_shortcut.tbl_times SET created_time = unixtimestampof(now()) WHERE key = 'url_shortcut' ;
+
+									<-------------------------------------------------->
+
+-- The main table to store URLs.
+
+CREATE TABLE url_shortcut.tbl_urls (
+	uuid TIMEUUID, 
+	url TEXT, 
+	signature TEXT, 
+	created_on TIMESTAMP, 
+	PRIMARY KEY (uuid)
+) ;
+
+									<-------------------------------------------------->
+
+-- This table is to ensure URLs are stored uniquely with no duplications.
+-- For the sake of reliability, we can't trust SHA512 hash alone. Collision is possible.
+-- The table is used to lookup URLs as well. If exists, return its signature.
+-- We should not store duplicate URLs.
+
+CREATE TABLE url_shortcut.tbl_hashes (
+	sha512 TEXT, 
+	sha256 TEXT, 
+	uuid TIMEUUID, 
+	PRIMARY KEY (sha512, sha256)
+) ;
+
+									<-------------------------------------------------->
+
+-- This table is meant to recover a URL from its shortened form (the signature).
+
+CREATE TABLE url_shortcut.tbl_signatures (
+	signature TEXT, 
+	uuid TIMEUUID, 
+	PRIMARY KEY (signature)
+) ;
+
+									<-------------------------------------------------->
+
+-- The table below is to keep track of each URL's popularity.
+
+CREATE TABLE url_shortcut.tbl_hits (
+	uuid TIMEUUID, 
+	hit COUNTER, 
+	PRIMARY KEY (uuid)
+) ;
