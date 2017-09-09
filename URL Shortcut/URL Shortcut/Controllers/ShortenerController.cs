@@ -38,6 +38,7 @@ namespace URL_Shortcut.Controllers
             if (signatureLookup.LookupSignature(sha512, sha256, out string signature))
             {
                 result.Signature = signature;
+                result.Status = 0;
                 return Json(result);
             }
 
@@ -94,6 +95,11 @@ namespace URL_Shortcut.Controllers
             result.Signature = sign;
 
             // Insert the new URL into the database
+            URLInsertion urlInsertion = new URLInsertion(csSession);
+            if (urlInsertion.InsertURL(url, sign, sha512, sha256))
+            {
+                result.Status = 0;
+            }
 
             return Json(result);
         }

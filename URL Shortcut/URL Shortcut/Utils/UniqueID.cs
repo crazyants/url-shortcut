@@ -36,7 +36,7 @@ namespace URL_Shortcut.Utils
             {
                 z = ulong.Parse(y);
             }
-            catch(OverflowException ex)
+            catch(OverflowException/* ex*/)
             {
                 // It has exceeded the upper limit of unsigned long
                 z = FAILURE;

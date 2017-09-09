@@ -11,12 +11,15 @@ namespace URL_Shortcut.Database
             this.session = session;
         }
 
-        public bool HitURL(TimeUuid uuid)
+        public bool HitURL(TimeUuid uuid, bool check = true)
         {
-            QueryURLHitCount query = new QueryURLHitCount(this.session);
-            if (!query.GetURLHitCount(uuid, out long hits))
+            if (check)
             {
-                return false;
+                QueryURLHitCount query = new QueryURLHitCount(this.session);
+                if (!query.GetURLHitCount(uuid, out long hits))
+                {
+                    return false;
+                }
             }
 
             var cql = "UPDATE tbl_hits SET hit = hit + 1 WHERE uuid = ? ;";
