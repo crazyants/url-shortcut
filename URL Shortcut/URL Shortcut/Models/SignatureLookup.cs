@@ -22,9 +22,16 @@ namespace URL_Shortcut.Models
                 return false;
             }
 
-            // Return the signature of the existing URL
+            // Get the signature of the existing URL
             QuerySignatureByUUID queryTwo = new QuerySignatureByUUID(session);
             if (!queryTwo.GetSignatureByUUID(uuid, out signature))
+            {
+                return false;
+            }
+
+            // Hit the URL
+            QueryHitURL queryThree = new QueryHitURL(this.session);
+            if (!queryThree.HitURL(uuid))
             {
                 return false;
             }
