@@ -5,6 +5,8 @@ using URL_Shortcut.Database;
 using Cassandra;
 using URL_Shortcut.Models;
 using System;
+using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace URL_Shortcut.Controllers
 {
@@ -20,7 +22,8 @@ namespace URL_Shortcut.Controllers
             {
                 Status = -1,
                 URL = url,
-                Signature = string.Empty
+                Signature = string.Empty,
+                Popularity = -1
             };
 
             // Get the URL's SHA512 & SHA256 hash
@@ -35,9 +38,10 @@ namespace URL_Shortcut.Controllers
 
             // Lookup database and return the URL's signature if it exists
             SignatureLookup signatureLookup = new SignatureLookup(csSession);
-            if (signatureLookup.LookupSignature(sha512, sha256, out string signature))
+            if (signatureLookup.LookupSignature(sha512, sha256, out string signature, out long hits))
             {
-                result.Signature = signature;
+                result.Signature = this.MakeShortcut(signature);
+                result.Popularity = hits;
                 result.Status = 0;
                 return Json(result);
             }
@@ -92,16 +96,32 @@ namespace URL_Shortcut.Controllers
             }
 
             // Unique signature is now set
-            result.Signature = sign;
+            result.Signature = this.MakeShortcut(sign);
 
             // Insert the new URL into the database
             URLInsertion urlInsertion = new URLInsertion(csSession);
             if (urlInsertion.InsertURL(url, sign, sha512, sha256))
             {
+                result.Popularity = 1;
                 result.Status = 0;
             }
 
             return Json(result);
+        }
+
+        private string MakeShortcut(string signature)
+        {
+            // Read app's base URL
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile(@"Properties\launchSettings.json")
+                .Build();
+            string baseUrl = configuration["iisSettings:iisExpress:applicationUrl"];
+
+            // Make the final shortcut URL
+            string shortcut = string.Format("{0}?k={1}", baseUrl, signature);
+
+            return shortcut;
         }
     }
 }

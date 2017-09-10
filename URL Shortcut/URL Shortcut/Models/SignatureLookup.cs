@@ -12,13 +12,14 @@ namespace URL_Shortcut.Models
             this.session = session;
         }
 
-        public bool LookupSignature(string sha512, string sha256, out string signature)
+        public bool LookupSignature(string sha512, string sha256, out string signature, out long hits)
         {
             // See if the URL exists in database
             QueryUUIDBySHA queryOne = new QueryUUIDBySHA(session);
             if (!queryOne.GetUUIDBySHA(sha512, sha256, out TimeUuid uuid))
             {
                 signature = string.Empty;
+                hits = -1;
                 return false;
             }
 
@@ -26,12 +27,21 @@ namespace URL_Shortcut.Models
             QuerySignatureByUUID queryTwo = new QuerySignatureByUUID(session);
             if (!queryTwo.GetSignatureByUUID(uuid, out signature))
             {
+                hits = -1;
                 return false;
             }
 
             // Hit the URL
             QueryHitURL queryThree = new QueryHitURL(this.session);
             if (!queryThree.HitURL(uuid))
+            {
+                hits = -1;
+                return false;
+            }
+
+            // Get URL's popularity
+            QueryURLHitCount queryFour = new QueryURLHitCount(this.session);
+            if (!queryFour.GetURLHitCount(uuid, out hits))
             {
                 return false;
             }
