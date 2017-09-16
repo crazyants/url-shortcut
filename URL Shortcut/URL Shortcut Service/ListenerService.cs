@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Linq;
-using System.ServiceProcess;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ServiceProcess;
 
 namespace URL_Shortcut_Service
 {
@@ -19,6 +11,14 @@ namespace URL_Shortcut_Service
 
         protected override void OnStart(string[] args)
         {
+            // The port to which the server listens
+            int port = 7079;
+
+            // The maximum number of pending client connections
+            int backlog = int.MaxValue;
+
+            // Launch the server
+            AsyncSocketServer.LaunchServer(port, backlog);
         }
 
         protected override void OnStop()
