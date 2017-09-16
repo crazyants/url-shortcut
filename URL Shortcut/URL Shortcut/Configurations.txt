@@ -46,6 +46,8 @@ CREATE TABLE url_shortcut.tbl_counters (
 	PRIMARY KEY (key)
 ) ;
 
+UPDATE url_shortcut.tbl_counters SET counter = counter + 1 WHERE key = 'urls' ;
+
 									<-------------------------------------------------->
 
 -- The table below stores the time when the keyspace is created.
@@ -107,3 +109,14 @@ CREATE TABLE url_shortcut.tbl_hits (
 	hit COUNTER, 
 	PRIMARY KEY (uuid)
 ) ;
+
+================================================== KeySpace Tables Cleanup ==================================================
+
+TRUNCATE TABLE url_shortcut.tbl_counters ;
+TRUNCATE TABLE url_shortcut.tbl_times ;
+TRUNCATE TABLE url_shortcut.tbl_urls ;
+TRUNCATE TABLE url_shortcut.tbl_hashes ;
+TRUNCATE TABLE url_shortcut.tbl_signatures ;
+TRUNCATE TABLE url_shortcut.tbl_hits ;
+UPDATE url_shortcut.tbl_times SET created_time = unixtimestampof(now()) WHERE key = 'url_shortcut' ;
+UPDATE url_shortcut.tbl_counters SET counter = counter + 1 WHERE key = 'urls' ;

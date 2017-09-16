@@ -9,7 +9,10 @@ namespace URL_Shortcut_Service
 {
     static class AsyncSocketServer
     {
-        public static string LogFile { get; set; } = @"C:\URL_Shortcut_Service_Log.txt";
+        public static string LogFile { get; set; }
+            = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) 
+            + @"\URL_Shortcut_Service_Log.txt";
+        private static StringBuilder log = new StringBuilder();
         public const string EOF = "<-EOF->";
         private static ManualResetEvent waitSignal = new ManualResetEvent(false);
 
@@ -42,6 +45,9 @@ namespace URL_Shortcut_Service
 
                     // Wait until a connection is established
                     waitSignal.WaitOne();
+
+                    // Write into log file
+                    CommitLog();
                 }
             }
             catch (Exception ex)
@@ -191,9 +197,15 @@ namespace URL_Shortcut_Service
 
         private static void Log(string message)
         {
+            log.Append(string.Format("{0}\t{1}\n", DateTime.Now.ToString(), message));
+        }
+
+        private static void CommitLog()
+        {
             try
             {
-                File.AppendAllText(LogFile, string.Format("{0}\t{1}\n", DateTime.Now.ToString(), message));
+                File.AppendAllText(LogFile, log.ToString());
+                log.Clear();
             }
             catch (Exception ex)
             {

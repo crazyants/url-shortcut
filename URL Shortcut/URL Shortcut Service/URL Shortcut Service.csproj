@@ -77,6 +77,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CassandraCounter.cs" />
     <Compile Include="CommunicationObject.cs" />
     <Compile Include="ListenerService.cs">
       <SubType>Component</SubType>
