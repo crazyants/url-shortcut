@@ -30,6 +30,7 @@ namespace URL_Shortcut_Service
 
         public long GetCounter()
         {
+            // Connect to the database
             this.Connect();
 
             long value = -1;
@@ -45,6 +46,7 @@ namespace URL_Shortcut_Service
                 value = row.GetValue<long>(key);
             }
 
+            // Disconnect from the database
             this.Disconnect();
 
             return value;
@@ -70,6 +72,7 @@ namespace URL_Shortcut_Service
 
         private void Disconnect()
         {
+            // Destroy the established connection
             this.cluster.Shutdown();
         }
     }

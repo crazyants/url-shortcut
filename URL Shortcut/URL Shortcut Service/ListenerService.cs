@@ -11,8 +11,15 @@ namespace URL_Shortcut_Service
 
         protected override void OnStart(string[] args)
         {
-            CassandraCounter cc = new CassandraCounter("127.0.0.1", 9042, "url_shortcut", "urluser", "urluser");
-            long c = cc.GetCounter();
+            // Instantiate the Cassandra Counter class
+            CassandraCounter cassandraCounter =
+                new CassandraCounter("127.0.0.1", 9042, "url_shortcut", "urluser", "urluser");
+
+            // Get the most recent count number from database
+            long count = cassandraCounter.GetCounter();
+
+            // Initialize the shared memory counter class with the count number
+            SharedMemoryCounter.Initialize(count);
 
             // The port to which the server listens
             int port = 7079;

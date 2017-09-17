@@ -2,23 +2,22 @@
 using System.Net.Sockets;
 using System.Net;
 using System;
-using System.IO;
 using System.Text;
 
 namespace URL_Shortcut_Service
 {
     static class AsyncSocketServer
     {
-        public static string LogFile { get; set; }
-            = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) 
-            + @"\URL_Shortcut_Service_Log.txt";
-        private static StringBuilder log = new StringBuilder();
+        public const string BOF = "<-BOF->";
         public const string EOF = "<-EOF->";
+
+        // The wait-signal to block the main thread while each
+        // client request is being assigned to an async socket
         private static ManualResetEvent waitSignal = new ManualResetEvent(false);
 
         public static void LaunchServer(int port, int backlog)
         {
-            // The main socket
+            // The main socket to accept connections
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             try
@@ -27,11 +26,9 @@ namespace URL_Shortcut_Service
                 IPAddress ip = IPAddress.Any;
                 IPEndPoint endPoint = new IPEndPoint(ip, port);
                 socket.Bind(endPoint);
-                Log(string.Format("Socket bound on {0}:{1}", ip.ToString(), port));
 
                 // Start listening
                 socket.Listen(backlog);
-                Log("Socket is listening");
 
                 // Enter eternity
                 while (true)
@@ -41,18 +38,14 @@ namespace URL_Shortcut_Service
 
                     // Launch an async socket to accept a connection
                     socket.BeginAccept(new AsyncCallback(Accepted), socket);
-                    Log("Awaiting connections...");
 
-                    // Wait until a connection is established
+                    // Wait until a connection is established,
+                    // then throw another async socket
                     waitSignal.WaitOne();
-
-                    // Write into log file
-                    CommitLog();
                 }
             }
             catch (Exception ex)
             {
-                // Logging the exception
                 Log(ex.ToString());
             }
             finally
@@ -60,17 +53,14 @@ namespace URL_Shortcut_Service
                 // Shutdown the socket
                 socket.Shutdown(SocketShutdown.Both);
                 socket.Close();
-                Log("Socket unexpected shutdown");
             }
         }
 
         private static void Accepted(IAsyncResult asyncResult)
         {
             /*
-             * I believe the socket object that is passed
-             * to this async callback function is cloned.
-             * Otherwise, the wait signal must be set after
-             * the client handler socket is acquired.
+             * I believe the socket object that is passed to this async callback function is cloned.
+             * Otherwise, the wait signal must be set after the client handler socket is acquired.
              */
 
             // Continue to accept another connection
@@ -81,10 +71,7 @@ namespace URL_Shortcut_Service
 
             // Get client handler socket
             Socket clientSocket = socket.EndAccept(asyncResult);
-
-            // Log the established connection
-            Log(string.Format("Connection established: {0}", clientSocket.RemoteEndPoint.ToString()));
-
+            
             // Create a communication object to serve this client
             CommunicationObject comObj = new CommunicationObject()
             {
@@ -99,15 +86,12 @@ namespace URL_Shortcut_Service
             // Log error if there's any
             if (errorCode != SocketError.Success)
             {
-                Log(string.Format("Error receiving packets: {0}", errorCode.ToString()));
+                Log(errorCode.ToString());
             }
         }
 
         private static void Receive(IAsyncResult asyncResult)
         {
-            // Log the action
-            Log("Receiving...");
-
             // Cast back the communication object
             CommunicationObject comObj = (CommunicationObject)asyncResult.AsyncState;
 
@@ -116,23 +100,28 @@ namespace URL_Shortcut_Service
 
             // Retrieve data from client
             int bytesReceived = clientSocket.EndReceive(asyncResult);
-            Log(string.Format("Received bytes: {0}", bytesReceived));
 
             // Proceed if anything is retrieved
             if (bytesReceived > 0)
             {
                 // Translate the received packet
                 string packet = Encoding.ASCII.GetString(comObj.buffer, 0, bytesReceived);
-                Log(string.Format("Received packet: {0}", packet));
 
                 // Keep whatever is received so far
                 comObj.message.Append(packet);
 
+                // Check for the beginning-of-file tag
+                if (comObj.message.ToString().IndexOf(BOF) > -1)
+                {
+                    // Clear whatever is received so far
+                    comObj.message.Clear();
+                }
+
                 // Check for the end-of-file tag
                 if (comObj.message.ToString().IndexOf(EOF) > -1)
                 {
-                    // Log the message
-                    Log(string.Format("Message received: {0}", comObj.message.ToString()));
+                    // Remove the tag
+                    comObj.message.Replace(EOF, string.Empty);
 
                     // Respond the client
                     Send(comObj);
@@ -145,7 +134,7 @@ namespace URL_Shortcut_Service
                     // Log error if there's any
                     if (errorCode != SocketError.Success)
                     {
-                        Log(string.Format("Error receiving packets: {0}", errorCode.ToString()));
+                        Log(errorCode.ToString());
                     }
                 }
             }
@@ -153,11 +142,8 @@ namespace URL_Shortcut_Service
 
         private static void Send(CommunicationObject comObj)
         {
-            // Log the action
-            Log("Sending...");
-
-            // Prepare the complete message as the response
-            byte[] response = Encoding.ASCII.GetBytes(comObj.message.ToString());
+            // Get the count from shared memory counter as the response
+            byte[] response = Encoding.ASCII.GetBytes(GetCount());
 
             // Start sending
             comObj.connection.BeginSend(response, 0, response.Length, 
@@ -167,50 +153,42 @@ namespace URL_Shortcut_Service
             // Log error if there's any
             if (errorCode != SocketError.Success)
             {
-                Log(string.Format("Error sending packets: {0}", errorCode.ToString()));
+                Log(errorCode.ToString());
             }
         }
 
         private static void Sent(IAsyncResult asyncResult)
         {
-            // Log the action
-            Log("Finalize sending...");
-
             // Cast back the communication object
             CommunicationObject comObj = (CommunicationObject)asyncResult.AsyncState;
 
             // Finish sending packets
             int bytesSent = comObj.connection.EndSend(asyncResult, out SocketError errorCode);
-            Log(string.Format("Sent bytes: {0}", bytesSent));
 
             // Log error if there's any
             if (errorCode != SocketError.Success)
             {
-                Log(string.Format("Error sending pending packets: {0}", errorCode.ToString()));
+                Log(errorCode.ToString());
             }
 
             // Shutdown socket
             comObj.connection.Shutdown(SocketShutdown.Both);
             comObj.connection.Close();
-            Log("Socket shutdown");
+        }
+
+        private static string GetCount()
+        {
+            // Get the count
+            long count = SharedMemoryCounter.Capture();
+
+            // Return the count as string
+            return count.ToString();
         }
 
         private static void Log(string message)
         {
-            log.Append(string.Format("{0}\t{1}\n", DateTime.Now.ToString(), message));
-        }
-
-        private static void CommitLog()
-        {
-            try
-            {
-                File.AppendAllText(LogFile, log.ToString());
-                log.Clear();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
+            // Although this is not a console app, but let it just output the error anyway
+            Console.WriteLine(string.Format("{0}\t{1}\n", DateTime.Now.ToString(), message));
         }
     }
 }
