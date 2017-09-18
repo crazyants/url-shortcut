@@ -87,7 +87,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="AsyncSocketServer.cs" />
+    <Compile Include="AsyncServerSocket.cs" />
     <Compile Include="SharedMemoryCounter.cs" />
   </ItemGroup>
   <ItemGroup>

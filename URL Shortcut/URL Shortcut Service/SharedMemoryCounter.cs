@@ -5,7 +5,7 @@
         // The uninitialized state for the counter
         private const long ZERO = 0;
 
-        // The counter that feed the async socket server
+        // The counter that feed the async server socket
         private static long counter = ZERO;
 
         // The lock to control the counter reads and writes

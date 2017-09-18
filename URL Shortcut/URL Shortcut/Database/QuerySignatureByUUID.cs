@@ -1,4 +1,5 @@
 ﻿using Cassandra;
+using URL_Shortcut.Utils;
 
 namespace URL_Shortcut.Database
 {
@@ -18,15 +19,17 @@ namespace URL_Shortcut.Database
             var stmt = prep.Bind(uuid);
             var rows = this.session.Execute(stmt);
 
-            foreach (Row row in rows)
+            var row = Helper.GetFirstRow(rows);
+
+            if (row == null)
             {
-                signature = row.GetValue<string>("signature");
-                return true;
+                signature = string.Empty;
+                return false;
             }
 
-            signature = string.Empty;
+            signature = row.GetValue<string>("signature");
 
-            return false;
+            return true;
         }
     }
 }

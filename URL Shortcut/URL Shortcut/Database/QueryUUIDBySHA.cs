@@ -1,4 +1,5 @@
 ﻿using Cassandra;
+using URL_Shortcut.Utils;
 
 namespace URL_Shortcut.Database
 {
@@ -18,13 +19,16 @@ namespace URL_Shortcut.Database
             var stmt = prep.Bind(sha512, sha256);
             var rows = this.session.Execute(stmt);
 
-            foreach (Row row in rows)
+            var row = Helper.GetFirstRow(rows);
+
+            if (row == null)
             {
-                uuid = row.GetValue<TimeUuid>("uuid");
-                return true;
+                return false;
             }
 
-            return false;
+            uuid = row.GetValue<TimeUuid>("uuid");
+
+            return true;
         }
     }
 }

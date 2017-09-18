@@ -1,4 +1,5 @@
 ﻿using Cassandra;
+using URL_Shortcut.Utils;
 
 namespace URL_Shortcut.Database
 {
@@ -18,10 +19,13 @@ namespace URL_Shortcut.Database
             var stmt = prep.Bind(signature);
             var rows = this.session.Execute(stmt);
 
-            foreach (Row row in rows)
+            var row = Helper.GetFirstRow(rows);
+
+            if (row != null)
             {
                 byte n = (byte)row.GetValue<long>("count");
-                if (n>0)
+
+                if (n > 0)
                 {
                     return true;
                 }

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace URL_Shortcut_Service
 {
-    static class AsyncSocketServer
+    static class AsyncServerSocket
     {
         public const string BOF = "<-BOF->";
         public const string EOF = "<-EOF->";
@@ -78,15 +78,23 @@ namespace URL_Shortcut_Service
                 connection = clientSocket
             };
 
-            // Start receiving client's packets
-            clientSocket.BeginReceive(comObj.buffer, 0, comObj.buffer.Length, 
-                SocketFlags.None, out SocketError errorCode, 
-                new AsyncCallback(Receive), comObj);
-
-            // Log error if there's any
-            if (errorCode != SocketError.Success)
+            try
             {
-                Log(errorCode.ToString());
+                // Start receiving client's packets
+                clientSocket.BeginReceive(comObj.buffer, 0, comObj.buffer.Length,
+                    SocketFlags.None, out SocketError errorCode,
+                    new AsyncCallback(Receive), comObj);
+
+                // Log error if there's any
+                if (errorCode != SocketError.Success)
+                {
+                    // Throw an exception upon unsuccessful receive
+                    throw new Exception(errorCode.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex.ToString());
             }
         }
 
@@ -145,15 +153,23 @@ namespace URL_Shortcut_Service
             // Get the count from shared memory counter as the response
             byte[] response = Encoding.ASCII.GetBytes(GetCount());
 
-            // Start sending
-            comObj.connection.BeginSend(response, 0, response.Length, 
-                SocketFlags.None, out SocketError errorCode, 
-                new AsyncCallback(Sent), comObj);
-
-            // Log error if there's any
-            if (errorCode != SocketError.Success)
+            try
             {
-                Log(errorCode.ToString());
+                // Start sending
+                comObj.connection.BeginSend(response, 0, response.Length,
+                    SocketFlags.None, out SocketError errorCode,
+                    new AsyncCallback(Sent), comObj);
+
+                // Log error if there's any
+                if (errorCode != SocketError.Success)
+                {
+                    // Throw an exception if failed to send
+                    throw new Exception(errorCode.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex.ToString());
             }
         }
 
@@ -162,18 +178,46 @@ namespace URL_Shortcut_Service
             // Cast back the communication object
             CommunicationObject comObj = (CommunicationObject)asyncResult.AsyncState;
 
-            // Finish sending packets
-            int bytesSent = comObj.connection.EndSend(asyncResult, out SocketError errorCode);
-
-            // Log error if there's any
-            if (errorCode != SocketError.Success)
+            try
             {
-                Log(errorCode.ToString());
-            }
+                // Finish sending packets
+                int bytesSent = comObj.connection.EndSend(asyncResult, out SocketError errorCode);
 
-            // Shutdown socket
-            comObj.connection.Shutdown(SocketShutdown.Both);
-            comObj.connection.Close();
+                // Log error if there's any
+                if (errorCode != SocketError.Success)
+                {
+                    // Throw an exception if failed to finalize
+                    throw new Exception(errorCode.ToString());
+                }
+
+                /*
+                 * It is possible for 'EndSend()' to fail. An exception is thrown if it does.
+                 * Any code after may not get executed. Hence, the socket shutdown process i-
+                 * s moved to the 'finally' block.
+                 */
+            }
+            catch (Exception ex)
+            {
+                Log(ex.ToString());
+            }
+            finally
+            {
+                /*
+                 * The socket shutdown process may fail as well!
+                 * Therefore, it's put in a 'try-catch' block.
+                 */
+
+                try
+                {
+                    // Shutdown socket
+                    comObj.connection.Shutdown(SocketShutdown.Both);
+                    comObj.connection.Close();
+                }
+                catch (Exception ex)
+                {
+                    Log(ex.ToString());
+                }
+            }
         }
 
         private static string GetCount()

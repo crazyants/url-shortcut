@@ -1,4 +1,5 @@
 ﻿using Cassandra;
+using System.Linq;
 
 namespace URL_Shortcut_Service
 {
@@ -41,10 +42,9 @@ namespace URL_Shortcut_Service
             var stmt = prep.Bind("urls");
             var rows = this.session.Execute(stmt);
 
-            foreach (Row row in rows)
-            {
-                value = row.GetValue<long>(key);
-            }
+            var row = rows.GetRows().ToList()[0];
+
+            value = row.GetValue<long>(key);
 
             // Disconnect from the database
             this.Disconnect();

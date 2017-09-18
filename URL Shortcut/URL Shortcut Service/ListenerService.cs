@@ -28,7 +28,7 @@ namespace URL_Shortcut_Service
             int backlog = int.MaxValue;
 
             // Launch the server
-            AsyncSocketServer.LaunchServer(port, backlog);
+            AsyncServerSocket.LaunchServer(port, backlog);
         }
 
         protected override void OnStop()

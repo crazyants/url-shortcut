@@ -26,6 +26,12 @@ namespace URL_Shortcut.Database
 
             // Execute the statements
             this.session.Execute(batchStatement);
+
+            // Update the global counter
+            var cql = "UPDATE tbl_counters SET counter = counter + 1 WHERE key = ? ;";
+            var prep = this.session.Prepare(cql);
+            var stmt = prep.Bind("urls");
+            this.session.Execute(stmt);
             
             return true;
         }
