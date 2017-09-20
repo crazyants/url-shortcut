@@ -1,12 +1,12 @@
-﻿using System.Threading;
-using System.Net.Sockets;
+﻿using System;
 using System.Net;
-using System;
+using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 
 namespace URL_Shortcut_Service
 {
-    static class AsyncServerSocket
+    internal static class AsyncServerSocket
     {
         // Tags to determine the beginning and the end of transmission
         private const string BOT = "<~BOT~>";
@@ -111,7 +111,13 @@ namespace URL_Shortcut_Service
             Socket clientSocket = comObj.connection;
 
             // Retrieve data from client
-            int bytesReceived = clientSocket.EndReceive(asyncResult);
+            int bytesReceived = clientSocket.EndReceive(asyncResult, out SocketError errorCodeER);
+
+            // Log error if there's any
+            if (errorCodeER != SocketError.Success)
+            {
+                Log(errorCodeER.ToString());
+            }
 
             // Proceed if anything is retrieved
             if (bytesReceived > 0)
@@ -140,13 +146,13 @@ namespace URL_Shortcut_Service
                 } else {
                     // Receive more packets
                     clientSocket.BeginReceive(comObj.buffer, 0, comObj.buffer.Length, 
-                        SocketFlags.None, out SocketError errorCode, 
+                        SocketFlags.None, out SocketError errorCodeBR, 
                         new AsyncCallback(Receive), comObj);
 
                     // Log error if there's any
-                    if (errorCode != SocketError.Success)
+                    if (errorCodeBR != SocketError.Success)
                     {
-                        Log(errorCode.ToString());
+                        Log(errorCodeBR.ToString());
                     }
                 }
             }

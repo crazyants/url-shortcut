@@ -2,7 +2,7 @@
 
 namespace URL_Shortcut_Service
 {
-    static class Program
+    public static class Program
     {
         /// <summary>
         /// The main entry point for the application.

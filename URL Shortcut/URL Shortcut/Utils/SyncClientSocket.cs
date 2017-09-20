@@ -9,11 +9,8 @@ namespace URL_Shortcut.Utils
     {
         private const short BUFFER_SIZE = 1024;
 
-        public static string Transmit(IPAddress ip, int port, string message)
+        public static string Transmit(string ip, int port, string message)
         {
-            // Define the connection of the server
-            IPEndPoint remoteServer = new IPEndPoint(ip, port);
-
             // Create a socket
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
@@ -22,6 +19,10 @@ namespace URL_Shortcut.Utils
 
             try
             {
+                // Define the connection of the server
+                IPAddress ipAddress = IPAddress.Parse(ip);
+                IPEndPoint remoteServer = new IPEndPoint(ipAddress, port);
+
                 // Trying to connect to the server
                 socket.Connect(remoteServer);
 

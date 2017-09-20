@@ -1,6 +1,6 @@
 ﻿namespace URL_Shortcut_Service
 {
-    partial class ServiceInstaller
+    public partial class ServiceInstaller
     {
         /// <summary>
         /// Required designer variable.
@@ -39,9 +39,9 @@
             // 
             // serviceInstaller1
             // 
-            this.serviceInstaller1.Description = "The background process to support the URL Shortcut API.";
+            this.serviceInstaller1.Description = "Supports simultaneous URL shortener API requests by maintaining shared memory.";
             this.serviceInstaller1.DisplayName = "URL Shortcut Service";
-            this.serviceInstaller1.ServiceName = "URL Shortcut Service";
+            this.serviceInstaller1.ServiceName = "url_shortcut_service";
             this.serviceInstaller1.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
             // 
             // ServiceInstaller

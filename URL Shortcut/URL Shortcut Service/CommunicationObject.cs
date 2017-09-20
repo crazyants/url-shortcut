@@ -3,7 +3,7 @@ using System.Text;
 
 namespace URL_Shortcut_Service
 {
-    class CommunicationObject
+    internal class CommunicationObject
     {
         // Buffer size expected to be 1K bytes
         private const short BUFFER_SIZE = 1024;

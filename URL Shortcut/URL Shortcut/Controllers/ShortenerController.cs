@@ -6,7 +6,6 @@ using Cassandra;
 using URL_Shortcut.Models;
 using Microsoft.Extensions.Configuration;
 using System.IO;
-using System.Net;
 using System;
 
 namespace URL_Shortcut.Controllers
@@ -48,22 +47,15 @@ namespace URL_Shortcut.Controllers
             }
 
             // Get total URL count from the running service
-            long id = -1;
-            try
-            {
-                const string BOT = "<~BOT~>";
-                const string EOT = "<~EOT~>";
-                string key = "COUNT";
-                string message = string.Format("{0}{1}{2}", BOT, key, EOT);
-                IPAddress ip = IPAddress.Parse("127.0.0.1");
-                int port = 7079;
-                string response = SyncClientSocket.Transmit(ip, port, message);
-                id = long.Parse(response);
-            }
-            catch (Exception ex)
-            {
-
-            }
+            const string BOT = "<~BOT~>";
+            const string EOT = "<~EOT~>";
+            const string COMMAND_COUNT = "COUNT";
+            string message = string.Format("{0}{1}{2}", BOT, COMMAND_COUNT, EOT);
+            string ip = "127.0.0.1";
+            int port = 7079;
+            //AsyncClientSocket.Transmit(ip, port, message, out string response);
+            string response = SyncClientSocket.Transmit(ip, port, message);
+            long id = long.Parse(response);
 
             // Prepare dictionary
             char[] dictionary =

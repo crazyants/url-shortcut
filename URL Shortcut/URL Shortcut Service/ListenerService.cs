@@ -21,7 +21,7 @@ namespace URL_Shortcut_Service
             // Initialize the thread
             this.thread = new Thread(new ThreadStart(RunListener));
 
-            // Initialize the flag and set it as running
+            // Initialize the flag by setting it as running
             this.running = true;
 
             // Start the thread
@@ -30,7 +30,7 @@ namespace URL_Shortcut_Service
 
         protected override void OnStop()
         {
-            // Stop the thread by setting the flag off
+            // Stop the thread by setting off the flag
             this.running = false;
         }
 

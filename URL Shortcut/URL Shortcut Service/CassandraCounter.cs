@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace URL_Shortcut_Service
 {
-    class CassandraCounter
+    internal class CassandraCounter
     {
         // The database cluster and connection session objects
         private Cluster cluster;

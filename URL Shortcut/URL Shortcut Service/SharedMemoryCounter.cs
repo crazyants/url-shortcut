@@ -1,6 +1,6 @@
 ﻿namespace URL_Shortcut_Service
 {
-    static class SharedMemoryCounter
+    internal static class SharedMemoryCounter
     {
         // The uninitialized state for the counter
         private const long ZERO = 0;

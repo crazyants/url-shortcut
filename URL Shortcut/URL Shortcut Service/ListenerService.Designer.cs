@@ -1,6 +1,6 @@
 ﻿namespace URL_Shortcut_Service
 {
-    partial class ListenerService
+    public partial class ListenerService
     {
         /// <summary> 
         /// Required designer variable.
@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             // 
-            // Service1
+            // ListenerService
             // 
             this.ServiceName = "URL Shortcut Service";
 
