@@ -4,9 +4,10 @@ using URL_Shortcut.Utils;
 using URL_Shortcut.Database;
 using Cassandra;
 using URL_Shortcut.Models;
-using System;
 using Microsoft.Extensions.Configuration;
 using System.IO;
+using System.Net;
+using System;
 
 namespace URL_Shortcut.Controllers
 {
@@ -20,7 +21,7 @@ namespace URL_Shortcut.Controllers
             // Create object to return
             APIResult result = new APIResult()
             {
-                Status = -1,
+                Status = (int)APIStatus.Failure,
                 URL = url,
                 Signature = string.Empty,
                 Popularity = -1
@@ -42,18 +43,26 @@ namespace URL_Shortcut.Controllers
             {
                 result.Signature = this.MakeShortcut(signature);
                 result.Popularity = hits;
-                result.Status = 0;
+                result.Status = (int)APIStatus.Success;
                 return Json(result);
             }
 
-            // Get time->now in millisecond
-            long time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-
-            // Get the time when keyspace initiated
-            QueryKeySpaceTime query1 = new QueryKeySpaceTime(csSession);
-            if (!query1.GetKeySpaceTime(out long initTime))
+            // Get total URL count from the running service
+            long id = -1;
+            try
             {
-                return Json(result);
+                const string BOT = "<~BOT~>";
+                const string EOT = "<~EOT~>";
+                string key = "COUNT";
+                string message = string.Format("{0}{1}{2}", BOT, key, EOT);
+                IPAddress ip = IPAddress.Parse("127.0.0.1");
+                int port = 7079;
+                string response = SyncClientSocket.Transmit(ip, port, message);
+                id = long.Parse(response);
+            }
+            catch (Exception ex)
+            {
+
             }
 
             // Prepare dictionary
@@ -75,25 +84,8 @@ namespace URL_Shortcut.Controllers
                 '6', '7', '8', '9'
             };
 
-            // Get a unique ID to sign
-            Random rnd = new Random();
-            string sign = string.Empty;
-            ulong id = UniqueID.FAILURE;
-            while (id == UniqueID.FAILURE)
-            {
-                // Get ID
-                id = UniqueID.GetUniqueID(initTime, time, rnd);
-
-                // Get signature
-                sign = BaseN.ChangeBase(id, dictionary);
-
-                // Check for signature uniqueness
-                QuerySignatureExistence query2 = new QuerySignatureExistence(csSession);
-                if (query2.SignatureExists(sign))
-                {
-                    id = UniqueID.FAILURE;
-                }
-            }
+            // Get signature
+            string sign = BaseN.ChangeBase(id, dictionary);
 
             // Unique signature is now set
             result.Signature = this.MakeShortcut(sign);
@@ -103,7 +95,7 @@ namespace URL_Shortcut.Controllers
             if (urlInsertion.InsertURL(url, sign, sha512, sha256))
             {
                 result.Popularity = 1;
-                result.Status = 0;
+                result.Status = (int)APIStatus.Success;
             }
 
             return Json(result);
@@ -122,6 +114,12 @@ namespace URL_Shortcut.Controllers
             string shortcut = string.Format("{0}?k={1}", baseUrl, signature);
 
             return shortcut;
+        }
+
+        private enum APIStatus
+        {
+            Failure = -1,
+            Success = 0
         }
     }
 }

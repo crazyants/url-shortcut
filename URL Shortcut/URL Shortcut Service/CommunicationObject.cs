@@ -6,7 +6,7 @@ namespace URL_Shortcut_Service
     class CommunicationObject
     {
         // Buffer size expected to be 1K bytes
-        private const int BUFFER_SIZE = 1024;
+        private const short BUFFER_SIZE = 1024;
 
         public Socket connection;
         public byte[] buffer;

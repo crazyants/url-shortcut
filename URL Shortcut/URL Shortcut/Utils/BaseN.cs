@@ -2,7 +2,7 @@
 {
     public class BaseN
     {
-        public static string ChangeBase(ulong value, char[] charSet)
+        public static string ChangeBase(long value, char[] charSet)
         {
             string result = string.Empty;
             uint targetBase = (uint)(charSet.Length);

@@ -50,22 +50,6 @@ UPDATE url_shortcut.tbl_counters SET counter = counter + 1 WHERE key = 'urls' ;
 
 									<-------------------------------------------------->
 
--- The table below stores the time when the keyspace is created.
--- ***DO NOT, I repeat, DO NOT modify this table and its content once it's initiated.***
--- The field time DOES play a role in encrypting URLs.
-
-CREATE TABLE url_shortcut.tbl_times (
-	key TEXT, 
-	created_time TIMESTAMP, 
-	PRIMARY KEY (key)
-) ;
-
--- Initiate the time.
-
-UPDATE url_shortcut.tbl_times SET created_time = unixtimestampof(now()) WHERE key = 'url_shortcut' ;
-
-									<-------------------------------------------------->
-
 -- The main table to store URLs.
 
 CREATE TABLE url_shortcut.tbl_urls (
@@ -113,10 +97,8 @@ CREATE TABLE url_shortcut.tbl_hits (
 ================================================== KeySpace Tables Cleanup ==================================================
 
 TRUNCATE TABLE url_shortcut.tbl_counters ;
-TRUNCATE TABLE url_shortcut.tbl_times ;
 TRUNCATE TABLE url_shortcut.tbl_urls ;
 TRUNCATE TABLE url_shortcut.tbl_hashes ;
 TRUNCATE TABLE url_shortcut.tbl_signatures ;
 TRUNCATE TABLE url_shortcut.tbl_hits ;
-UPDATE url_shortcut.tbl_times SET created_time = unixtimestampof(now()) WHERE key = 'url_shortcut' ;
 UPDATE url_shortcut.tbl_counters SET counter = counter + 1 WHERE key = 'urls' ;

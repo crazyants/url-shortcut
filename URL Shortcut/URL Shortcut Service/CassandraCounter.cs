@@ -54,7 +54,7 @@ namespace URL_Shortcut_Service
 
         private void Connect()
         {
-            // Establish the connection
+            // Establish the connection *with consistency level of ALL*
             this.cluster = Cluster
                 .Builder()
                 .AddContactPoint(this.host)

@@ -8,8 +8,9 @@ namespace URL_Shortcut_Service
 {
     static class AsyncServerSocket
     {
-        public const string BOF = "<-BOF->";
-        public const string EOF = "<-EOF->";
+        // Tags to determine the beginning and the end of transmission
+        public const string BOT = "<~BOT~>";
+        public const string EOT = "<~EOT~>";
 
         // The wait-signal to block the main thread while each
         // client request is being assigned to an async socket
@@ -119,17 +120,17 @@ namespace URL_Shortcut_Service
                 comObj.message.Append(packet);
 
                 // Check for the beginning-of-file tag
-                if (comObj.message.ToString().IndexOf(BOF) > -1)
+                if (comObj.message.ToString().IndexOf(BOT) > -1)
                 {
                     // Clear whatever is received so far
                     comObj.message.Clear();
                 }
 
                 // Check for the end-of-file tag
-                if (comObj.message.ToString().IndexOf(EOF) > -1)
+                if (comObj.message.ToString().IndexOf(EOT) > -1)
                 {
                     // Remove the tag
-                    comObj.message.Replace(EOF, string.Empty);
+                    comObj.message.Replace(EOT, string.Empty);
 
                     // Respond the client
                     Send(comObj);
