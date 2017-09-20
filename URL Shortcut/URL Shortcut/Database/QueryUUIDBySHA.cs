@@ -19,7 +19,7 @@ namespace URL_Shortcut.Database
             var stmt = prep.Bind(sha512, sha256);
             var rows = this.session.Execute(stmt);
 
-            var row = Helper.GetFirstRow(rows);
+            var row = CassandraHelper.GetFirstRow(rows);
 
             if (row == null)
             {

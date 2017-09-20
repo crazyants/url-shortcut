@@ -1,4 +1,6 @@
-﻿namespace URL_Shortcut_Service
+﻿using System.ServiceProcess;
+
+namespace URL_Shortcut_Service
 {
     static class Program
     {
@@ -8,10 +10,12 @@
         static void Main()
         {
 #if DEBUG
+            // Debug mode
             ListenerService listenerService;
             listenerService = new ListenerService();
             listenerService.GoDebug(null);
 #else
+            // Normal mode: Run the service
             ServiceBase[] ServicesToRun;
             ServicesToRun = new ServiceBase[]
             {

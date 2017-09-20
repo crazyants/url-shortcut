@@ -20,7 +20,7 @@ namespace URL_Shortcut.Database
             var stmt = prep.Bind(uuid);
             var rows = this.session.Execute(stmt);
 
-            var row = Helper.GetFirstRow(rows);
+            var row = CassandraHelper.GetFirstRow(rows);
 
             if (row == null)
             {

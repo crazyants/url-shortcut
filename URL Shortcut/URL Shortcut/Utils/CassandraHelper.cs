@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace URL_Shortcut.Utils
 {
-    public static class Helper
+    public static class CassandraHelper
     {
         public static Row GetFirstRow(RowSet rowSet)
         {

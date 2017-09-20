@@ -9,14 +9,17 @@ namespace URL_Shortcut_Service
     static class AsyncServerSocket
     {
         // Tags to determine the beginning and the end of transmission
-        public const string BOT = "<~BOT~>";
-        public const string EOT = "<~EOT~>";
+        private const string BOT = "<~BOT~>";
+        private const string EOT = "<~EOT~>";
+
+        // The commands which determine the response
+        private const string COMMAND_COUNT = "COUNT";
 
         // The wait-signal to block the main thread while each
         // client request is being assigned to an async socket
         private static ManualResetEvent waitSignal = new ManualResetEvent(false);
 
-        public static void LaunchServer(int port, int backlog)
+        public static void LaunchServer(int port, int backlog, ref bool running)
         {
             // The main socket to accept connections
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -32,7 +35,7 @@ namespace URL_Shortcut_Service
                 socket.Listen(backlog);
 
                 // Enter eternity
-                while (true)
+                while (running)
                 {
                     // Reset signal
                     waitSignal.Reset();
@@ -151,8 +154,8 @@ namespace URL_Shortcut_Service
 
         private static void Send(CommunicationObject comObj)
         {
-            // Get the count from shared memory counter as the response
-            byte[] response = Encoding.ASCII.GetBytes(GetCount());
+            // Prepare the response according to the received message
+            byte[] response = Encoding.ASCII.GetBytes(PrepareResponse(comObj.message.ToString()));
 
             try
             {
@@ -221,13 +224,20 @@ namespace URL_Shortcut_Service
             }
         }
 
-        private static string GetCount()
+        private static string PrepareResponse(string message)
         {
-            // Get the count
-            long count = SharedMemoryCounter.Capture();
+            // Check the received message
+            if (message == COMMAND_COUNT)
+            {
+                // Get the count from shared memory counter as the response
+                long count = SharedMemoryCounter.Capture();
+                
+                // Return the count as string
+                return count.ToString();
+            }
 
-            // Return the count as string
-            return count.ToString();
+            // Return the received message if the command is not recognized
+            return string.Format("{0}{1}{2}", BOT, message, EOT);
         }
 
         private static void Log(string message)
