@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using URL_Shortcut.Models.POCOs;
-using URL_Shortcut.Utils;
-using URL_Shortcut.Database;
-using Cassandra;
-using URL_Shortcut.Models;
+﻿using Cassandra;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System.IO;
-using System;
+using URL_Shortcut.Database;
+using URL_Shortcut.Models;
+using URL_Shortcut.Models.POCOs;
+using URL_Shortcut.Utils;
 
 namespace URL_Shortcut.Controllers
 {
@@ -53,8 +52,8 @@ namespace URL_Shortcut.Controllers
             string message = string.Format("{0}{1}{2}", BOT, COMMAND_COUNT, EOT);
             string ip = "127.0.0.1";
             int port = 7079;
-            //AsyncClientSocket.Transmit(ip, port, message, out string response);
-            string response = SyncClientSocket.Transmit(ip, port, message);
+            AsyncClientSocket.Transmit(ip, port, message, out string response);
+            //string response = SyncClientSocket.Transmit(ip, port, message);
             long id = long.Parse(response);
 
             // Prepare dictionary

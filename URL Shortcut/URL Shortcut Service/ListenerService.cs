@@ -5,6 +5,8 @@ namespace URL_Shortcut_Service
 {
     public partial class ListenerService : ServiceBase
     {
+        private const int THREAD_TIMEOUT_15SEC = 15000;
+
         // The thread that runs the listener
         private Thread thread;
 
@@ -32,6 +34,15 @@ namespace URL_Shortcut_Service
         {
             // Stop the thread by setting off the flag
             this.running = false;
+
+            // Wait until thread finishes
+            this.thread.Join(THREAD_TIMEOUT_15SEC);
+
+            // Terminate the thread
+            if (this.thread.IsAlive)
+            {
+                this.thread.Abort();
+            }
         }
 
         // An entry point for debugging purposes

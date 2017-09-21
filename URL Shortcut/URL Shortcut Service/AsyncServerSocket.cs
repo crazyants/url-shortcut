@@ -22,11 +22,13 @@ namespace URL_Shortcut_Service
         public static void LaunchServer(int port, int backlog, ref bool running)
         {
             // The main socket to accept connections
-            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            Socket socket = new Socket(
+                AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             try
             {
-                // Bind the socket
+                // Bind the socket so that it listens to client
+                // activity on all available network interfaces
                 IPAddress ip = IPAddress.Any;
                 IPEndPoint endPoint = new IPEndPoint(ip, port);
                 socket.Bind(endPoint);
@@ -92,8 +94,7 @@ namespace URL_Shortcut_Service
                 // Log error if there's any
                 if (errorCode != SocketError.Success)
                 {
-                    // Throw an exception upon unsuccessful receive
-                    throw new Exception(errorCode.ToString());
+                    Log(errorCode.ToString());
                 }
             }
             catch (Exception ex)
@@ -110,51 +111,60 @@ namespace URL_Shortcut_Service
             // Get the client handler socket
             Socket clientSocket = comObj.connection;
 
-            // Retrieve data from client
-            int bytesReceived = clientSocket.EndReceive(asyncResult, out SocketError errorCodeER);
-
-            // Log error if there's any
-            if (errorCodeER != SocketError.Success)
+            try
             {
-                Log(errorCodeER.ToString());
-            }
+                // Retrieve data from client
+                int bytesReceived = clientSocket.EndReceive(asyncResult, out SocketError errorCodeER);
 
-            // Proceed if anything is retrieved
-            if (bytesReceived > 0)
-            {
-                // Translate the received packet
-                string packet = Encoding.ASCII.GetString(comObj.buffer, 0, bytesReceived);
-
-                // Keep whatever is received so far
-                comObj.message.Append(packet);
-
-                // Check for the beginning-of-file tag
-                if (comObj.message.ToString().IndexOf(BOT) > -1)
+                // Log error if there's any
+                if (errorCodeER != SocketError.Success)
                 {
-                    // Clear whatever is received so far
-                    comObj.message.Clear();
+                    Log(errorCodeER.ToString());
                 }
 
-                // Check for the end-of-file tag
-                if (comObj.message.ToString().IndexOf(EOT) > -1)
+                // Proceed if anything is retrieved
+                if (bytesReceived > 0)
                 {
-                    // Remove the tag
-                    comObj.message.Replace(EOT, string.Empty);
+                    // Translate the received packet
+                    string packet = Encoding.ASCII.GetString(comObj.buffer, 0, bytesReceived);
 
-                    // Respond the client
-                    Send(comObj);
-                } else {
-                    // Receive more packets
-                    clientSocket.BeginReceive(comObj.buffer, 0, comObj.buffer.Length, 
-                        SocketFlags.None, out SocketError errorCodeBR, 
-                        new AsyncCallback(Receive), comObj);
+                    // Keep whatever is received so far
+                    comObj.message.Append(packet);
 
-                    // Log error if there's any
-                    if (errorCodeBR != SocketError.Success)
+                    // Check for the beginning-of-file tag
+                    if (comObj.message.ToString().IndexOf(BOT) > -1)
                     {
-                        Log(errorCodeBR.ToString());
+                        // Clear whatever is received so far
+                        comObj.message.Clear();
+                    }
+
+                    // Check for the end-of-file tag
+                    if (comObj.message.ToString().IndexOf(EOT) > -1)
+                    {
+                        // Remove the tag
+                        comObj.message.Replace(EOT, string.Empty);
+
+                        // Respond the client
+                        Send(comObj);
+                    }
+                    else
+                    {
+                        // Receive more packets
+                        clientSocket.BeginReceive(comObj.buffer, 0, comObj.buffer.Length,
+                            SocketFlags.None, out SocketError errorCodeBR,
+                            new AsyncCallback(Receive), comObj);
+
+                        // Log error if there's any
+                        if (errorCodeBR != SocketError.Success)
+                        {
+                            Log(errorCodeBR.ToString());
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Log(ex.ToString());
             }
         }
 
@@ -173,8 +183,7 @@ namespace URL_Shortcut_Service
                 // Log error if there's any
                 if (errorCode != SocketError.Success)
                 {
-                    // Throw an exception if failed to send
-                    throw new Exception(errorCode.ToString());
+                    Log(errorCode.ToString());
                 }
             }
             catch (Exception ex)
@@ -196,8 +205,7 @@ namespace URL_Shortcut_Service
                 // Log error if there's any
                 if (errorCode != SocketError.Success)
                 {
-                    // Throw an exception if failed to finalize
-                    throw new Exception(errorCode.ToString());
+                    Log(errorCode.ToString());
                 }
 
                 /*

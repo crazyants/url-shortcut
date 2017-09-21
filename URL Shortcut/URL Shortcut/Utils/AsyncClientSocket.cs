@@ -1,8 +1,8 @@
-﻿using System.Threading;
+﻿using System;
 using System.Net;
-using System;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 
 namespace URL_Shortcut.Utils
 {
@@ -19,7 +19,8 @@ namespace URL_Shortcut.Utils
         public static void Transmit(string ip, int port, string message, out string response)
         {
             // Create a TCP/IP socket
-            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            Socket socket = new Socket(
+                AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             try
             {
@@ -58,6 +59,11 @@ namespace URL_Shortcut.Utils
                 {
                     // Shutdown the socket
                     socket.Shutdown(SocketShutdown.Both);
+
+                    // Disconnect from server
+                    Disconnect(socket);
+
+                    // Release the socket
                     socket.Close();
                 }
                 catch (Exception ex)
@@ -82,39 +88,41 @@ namespace URL_Shortcut.Utils
 
         private static void Connected(IAsyncResult asyncResult)
         {
+            // Cast back the socket
+            Socket socket = (Socket)asyncResult.AsyncState;
+
             try
             {
-                // Cast back the socket
-                Socket socket = (Socket)asyncResult.AsyncState;
-
                 // Finalize the connection
                 socket.EndConnect(asyncResult);
-
-                // Release the wait-signal
-                waitSignal_onConnect.Set();
             }
             catch (Exception ex)
             {
                 Log(ex.ToString());
             }
+            finally
+            {
+                // Release the wait-signal
+                waitSignal_onConnect.Set();
+            }
         }
 
         private static void Send(Socket socket, string message)
         {
+            // Prepare the packet to be sent
+            byte[] packet = Encoding.ASCII.GetBytes(message);
+
             try
             {
-                // Prepare the packet to be sent
-                byte[] packet = Encoding.ASCII.GetBytes(message);
-
                 // Trying to send...
                 socket.BeginSend(packet, 0, packet.Length, 
                     SocketFlags.None, out SocketError errorCode, 
                     new AsyncCallback(Sent), socket);
 
-                // Check for error if there's any
+                // Log error if there's any
                 if (errorCode != SocketError.Success)
                 {
-                    throw new Exception(errorCode.ToString());
+                    Log(errorCode.ToString());
                 }
             }
             catch (Exception ex)
@@ -125,48 +133,50 @@ namespace URL_Shortcut.Utils
 
         private static void Sent(IAsyncResult asyncResult)
         {
+            // Cast back the socket
+            Socket socket = (Socket)asyncResult.AsyncState;
+
             try
             {
-                // Cast back the socket
-                Socket socket = (Socket)asyncResult.AsyncState;
-
                 // Finalize the sending process
                 int bytesSent = socket.EndSend(asyncResult, out SocketError errorCode);
 
-                // Check if there was any error
+                // Log error if there's any
                 if (errorCode != SocketError.Success)
                 {
-                    throw new Exception(errorCode.ToString());
+                    Log(errorCode.ToString());
                 }
-
-                // Release the wait-signal
-                waitSignal_onSend.Set();
             }
             catch (Exception ex)
             {
                 Log(ex.ToString());
             }
+            finally
+            {
+                // Release the wait-signal
+                waitSignal_onSend.Set();
+            }
         }
 
         private static void Receive(Socket socket)
         {
+            // Create the communication object to handle the continuous retrieval
+            CommunicationObject comObj = new CommunicationObject()
+            {
+                connection = socket
+            };
+
             try
             {
-                // Create the state object
-                CommunicationObject comObj = new CommunicationObject()
-                {
-                    connection = socket
-                };
-
                 // Trying to receive...
-                socket.BeginReceive(comObj.buffer, 0, comObj.buffer.Length,
+                comObj.connection.BeginReceive(comObj.buffer, 0, comObj.buffer.Length,
                     SocketFlags.None, out SocketError errorCode,
                     new AsyncCallback(Received), comObj);
 
-                // Check for error
+                // Log error if there's any
                 if (errorCode != SocketError.Success)
                 {
-                    throw new Exception(errorCode.ToString());
+                    Log(errorCode.ToString());
                 }
             }
             catch (Exception ex)
@@ -177,19 +187,19 @@ namespace URL_Shortcut.Utils
 
         private static void Received(IAsyncResult asyncResult)
         {
+            // Cast back the communication object
+            CommunicationObject comObj = (CommunicationObject)asyncResult.AsyncState;
+
             try
             {
-                // Cast back the state object
-                CommunicationObject comObj = (CommunicationObject)asyncResult.AsyncState;
-
                 // Finalize the receiving process
                 int bytesReceived;
                 bytesReceived = comObj.connection.EndReceive(asyncResult, out SocketError errorCodeER);
 
-                // Check if received successfully
+                // Log error if there's any
                 if (errorCodeER != SocketError.Success)
                 {
-                    throw new Exception(errorCodeER.ToString());
+                    Log(errorCodeER.ToString());
                 }
 
                 // Check if anything received
@@ -204,10 +214,10 @@ namespace URL_Shortcut.Utils
                         SocketFlags.None, out SocketError errorCodeBR,
                         new AsyncCallback(Received), comObj);
 
-                    // Check for error
+                    // Log error if there's any
                     if (errorCodeBR != SocketError.Success)
                     {
-                        throw new Exception(errorCodeBR.ToString());
+                        Log(errorCodeBR.ToString());
                     }
                 } else {
                     // Entire message has been received
@@ -219,6 +229,38 @@ namespace URL_Shortcut.Utils
                     // Release the wait-signal
                     waitSignal_onReceive.Set();
                 }
+            }
+            catch (Exception ex)
+            {
+                Log(ex.ToString());
+
+                // Release the wait-signal upon any exception
+                waitSignal_onReceive.Set();
+            }
+        }
+
+        private static void Disconnect(Socket socket)
+        {
+            try
+            {
+                // Trying to disconnect...
+                socket.BeginDisconnect(false, new AsyncCallback(Disconnected), socket);
+            }
+            catch (Exception ex)
+            {
+                Log(ex.ToString());
+            }
+        }
+
+        private static void Disconnected(IAsyncResult asyncResult)
+        {
+            // Cast back the communication object
+            CommunicationObject comObj = (CommunicationObject)asyncResult.AsyncState;
+
+            try
+            {
+                // Finalize the disconnection
+                comObj.connection.EndDisconnect(asyncResult);
             }
             catch (Exception ex)
             {
