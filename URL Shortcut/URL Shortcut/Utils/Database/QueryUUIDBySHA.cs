@@ -1,7 +1,7 @@
 ﻿using Cassandra;
 using URL_Shortcut.Utils;
 
-namespace URL_Shortcut.Database
+namespace URL_Shortcut.Utils.Database
 {
     public class QueryUUIDBySHA
     {

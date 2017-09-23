@@ -2,10 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System.IO;
-using URL_Shortcut.Database;
 using URL_Shortcut.Models;
 using URL_Shortcut.Models.POCOs;
 using URL_Shortcut.Utils;
+using URL_Shortcut.Utils.Database;
+using URL_Shortcut.Utils.Network;
 
 namespace URL_Shortcut.Controllers
 {
@@ -22,7 +23,7 @@ namespace URL_Shortcut.Controllers
                 Status = (int)APIStatus.Failure,
                 URL = url,
                 Signature = string.Empty,
-                Popularity = -1
+                Popularity = 0
             };
 
             // Get the URL's SHA512 & SHA256 hash
@@ -52,8 +53,9 @@ namespace URL_Shortcut.Controllers
             string message = string.Format("{0}{1}{2}", BOT, COMMAND_COUNT, EOT);
             string ip = "127.0.0.1";
             int port = 7079;
-            AsyncClientSocket.Transmit(ip, port, message, out string response);
-            //string response = SyncClientSocket.Transmit(ip, port, message);
+            AsyncClientSocket asyncClientSocket = new AsyncClientSocket();
+            asyncClientSocket.Transmit(ip, port, message, out string response);
+            //SyncClientSocket.Transmit(ip, port, message, out string response);
             long id = long.Parse(response);
 
             // Prepare dictionary

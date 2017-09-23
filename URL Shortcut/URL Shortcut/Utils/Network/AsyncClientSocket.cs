@@ -4,19 +4,23 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace URL_Shortcut.Utils
+namespace URL_Shortcut.Utils.Network
 {
-    internal static class AsyncClientSocket
+    internal class AsyncClientSocket
     {
         // Wait signals to arrange the Connect, Send, and Receive actions
-        private static ManualResetEvent waitSignal_onConnect = new ManualResetEvent(false);
-        private static ManualResetEvent waitSignal_onSend = new ManualResetEvent(false);
-        private static ManualResetEvent waitSignal_onReceive = new ManualResetEvent(false);
+        private ManualResetEvent waitSignal_onConnect = new ManualResetEvent(false);
+        private ManualResetEvent waitSignal_onSend = new ManualResetEvent(false);
+        private ManualResetEvent waitSignal_onReceive = new ManualResetEvent(false);
 
         // Response from server to be returned
-        private static string receivedMessage = string.Empty;
+        private string receivedMessage = string.Empty;
 
-        public static void Transmit(string ip, int port, string message, out string response)
+        public AsyncClientSocket()
+        {
+        }
+
+        public void Transmit(string ip, int port, string message, out string response)
         {
             // Create a TCP/IP socket
             Socket socket = new Socket(
@@ -73,7 +77,7 @@ namespace URL_Shortcut.Utils
             }
         }
 
-        private static void Connect(Socket socket, IPEndPoint endPoint)
+        private void Connect(Socket socket, IPEndPoint endPoint)
         {
             try
             {
@@ -86,7 +90,7 @@ namespace URL_Shortcut.Utils
             }
         }
 
-        private static void Connected(IAsyncResult asyncResult)
+        private void Connected(IAsyncResult asyncResult)
         {
             // Cast back the socket
             Socket socket = (Socket)asyncResult.AsyncState;
@@ -107,7 +111,7 @@ namespace URL_Shortcut.Utils
             }
         }
 
-        private static void Send(Socket socket, string message)
+        private void Send(Socket socket, string message)
         {
             // Prepare the packet to be sent
             byte[] packet = Encoding.ASCII.GetBytes(message);
@@ -131,7 +135,7 @@ namespace URL_Shortcut.Utils
             }
         }
 
-        private static void Sent(IAsyncResult asyncResult)
+        private void Sent(IAsyncResult asyncResult)
         {
             // Cast back the socket
             Socket socket = (Socket)asyncResult.AsyncState;
@@ -158,7 +162,7 @@ namespace URL_Shortcut.Utils
             }
         }
 
-        private static void Receive(Socket socket)
+        private void Receive(Socket socket)
         {
             // Create the communication object to handle the continuous retrieval
             CommunicationObject comObj = new CommunicationObject()
@@ -185,7 +189,7 @@ namespace URL_Shortcut.Utils
             }
         }
 
-        private static void Received(IAsyncResult asyncResult)
+        private void Received(IAsyncResult asyncResult)
         {
             // Cast back the communication object
             CommunicationObject comObj = (CommunicationObject)asyncResult.AsyncState;
@@ -239,7 +243,7 @@ namespace URL_Shortcut.Utils
             }
         }
 
-        private static void Disconnect(Socket socket)
+        private void Disconnect(Socket socket)
         {
             try
             {
@@ -252,9 +256,9 @@ namespace URL_Shortcut.Utils
             }
         }
 
-        private static void Disconnected(IAsyncResult asyncResult)
+        private void Disconnected(IAsyncResult asyncResult)
         {
-            // Cast back the communication object
+            // Cast back the socket
             Socket socket = (Socket)asyncResult.AsyncState;
 
             try
@@ -268,7 +272,7 @@ namespace URL_Shortcut.Utils
             }
         }
 
-        private static void Log(string message)
+        private void Log(string message)
         {
             // Logging...
         }

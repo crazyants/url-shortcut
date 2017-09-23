@@ -1,6 +1,6 @@
 ﻿using Cassandra;
 
-namespace URL_Shortcut.Database
+namespace URL_Shortcut.Utils.Database
 {
     public class QueryHitURL
     {

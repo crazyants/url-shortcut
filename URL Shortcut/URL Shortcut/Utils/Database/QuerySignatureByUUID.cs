@@ -1,21 +1,20 @@
 ﻿using Cassandra;
 using URL_Shortcut.Utils;
 
-namespace URL_Shortcut.Database
+namespace URL_Shortcut.Utils.Database
 {
-    public class QueryURLHitCount
+    public class QuerySignatureByUUID
     {
-        public const long NOT_FOUND = -1;
         ISession session;
 
-        public QueryURLHitCount(ISession session)
+        public QuerySignatureByUUID(ISession session)
         {
             this.session = session;
         }
 
-        public bool GetURLHitCount(TimeUuid uuid, out long hits)
+        public bool GetSignatureByUUID(TimeUuid uuid, out string signature)
         {
-            var cql = "SELECT hit FROM tbl_hits WHERE uuid = ? ;";
+            var cql = "SELECT signature FROM tbl_urls WHERE uuid = ? ;";
             var prep = this.session.Prepare(cql);
             var stmt = prep.Bind(uuid);
             var rows = this.session.Execute(stmt);
@@ -24,11 +23,11 @@ namespace URL_Shortcut.Database
 
             if (row == null)
             {
-                hits = NOT_FOUND;
+                signature = string.Empty;
                 return false;
             }
 
-            hits = row.GetValue<long>("hit");
+            signature = row.GetValue<string>("signature");
 
             return true;
         }
