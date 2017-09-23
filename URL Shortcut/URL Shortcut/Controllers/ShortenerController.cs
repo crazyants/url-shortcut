@@ -14,7 +14,7 @@ namespace URL_Shortcut.Controllers
     {
         [Route("")]
         [HttpPost]
-        public object Index([FromHeader]string url)
+        public object Index([FromForm]string url)
         {
             // Create object to return
             APIResult result = new APIResult()

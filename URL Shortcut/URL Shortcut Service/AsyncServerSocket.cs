@@ -131,14 +131,17 @@ namespace URL_Shortcut_Service
                     // Keep whatever is received so far
                     comObj.message.Append(packet);
 
-                    // Check for the beginning-of-file tag
+                    // Check for the beginning-of-transmission tag
                     if (comObj.message.ToString().IndexOf(BOT) > -1)
                     {
-                        // Clear whatever is received so far
+                        // Keep whatever is received after the beginning-of-transmission tag
+                        string accumulation = comObj.message.ToString();
                         comObj.message.Clear();
+                        string validMessage = accumulation.Substring(accumulation.IndexOf(BOT) + BOT.Length);
+                        comObj.message.Append(validMessage);
                     }
 
-                    // Check for the end-of-file tag
+                    // Check for the end-of-transmission tag
                     if (comObj.message.ToString().IndexOf(EOT) > -1)
                     {
                         // Remove the tag
@@ -256,8 +259,10 @@ namespace URL_Shortcut_Service
 
         private static void Log(string message)
         {
+            string log = string.Format("{0}\t{1}\n", DateTime.Now.ToString(), message);
+
             // Although this is not a console app, but let it just output the error anyway
-            Console.WriteLine(string.Format("{0}\t{1}\n", DateTime.Now.ToString(), message));
+            Console.WriteLine(log);
         }
     }
 }

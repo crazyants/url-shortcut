@@ -39,14 +39,13 @@ namespace URL_Shortcut.Utils
                     int bytesReceived = 0;
                     do
                     {
-                        //bytesReceived = socket.Receive(buffer, 0, BUFFER_SIZE, SocketFlags.None, out SocketError errorCode);
-                        bytesReceived = socket.Receive(buffer);
+                        bytesReceived = socket.Receive(buffer, 0, BUFFER_SIZE, SocketFlags.None, out SocketError errorCode);
 
                         // Check for failure if there's any
-                        //if (errorCode != SocketError.Success)
-                        //{
-                        //    throw new Exception(errorCode.ToString());
-                        //}
+                        if (errorCode != SocketError.Success)
+                        {
+                            throw new Exception(errorCode.ToString());
+                        }
 
                         // Translate the response
                         response.Append(Encoding.ASCII.GetString(buffer, 0, bytesReceived));

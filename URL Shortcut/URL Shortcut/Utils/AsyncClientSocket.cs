@@ -206,7 +206,7 @@ namespace URL_Shortcut.Utils
                 if (bytesReceived > 0)
                 {
                     // Save whatever is received so far as there might be more to receive
-                    string chunk = Encoding.ASCII.GetString(comObj.buffer, 0, comObj.buffer.Length);
+                    string chunk = Encoding.ASCII.GetString(comObj.buffer, 0, bytesReceived);
                     comObj.message.Append(chunk);
 
                     // Receive more
@@ -255,12 +255,12 @@ namespace URL_Shortcut.Utils
         private static void Disconnected(IAsyncResult asyncResult)
         {
             // Cast back the communication object
-            CommunicationObject comObj = (CommunicationObject)asyncResult.AsyncState;
+            Socket socket = (Socket)asyncResult.AsyncState;
 
             try
             {
                 // Finalize the disconnection
-                comObj.connection.EndDisconnect(asyncResult);
+                socket.EndDisconnect(asyncResult);
             }
             catch (Exception ex)
             {
