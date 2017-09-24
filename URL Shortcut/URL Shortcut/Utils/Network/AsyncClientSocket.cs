@@ -62,7 +62,10 @@ namespace URL_Shortcut.Utils.Network
                 try
                 {
                     // Shutdown the socket
-                    socket.Shutdown(SocketShutdown.Both);
+                    if (socket.Connected)
+                    {
+                        socket.Shutdown(SocketShutdown.Both);
+                    }
 
                     // Disconnect from server
                     Disconnect(socket);

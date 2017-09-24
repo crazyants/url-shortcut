@@ -1,5 +1,4 @@
 ﻿using Cassandra;
-using URL_Shortcut.Utils;
 
 namespace URL_Shortcut.Utils.Database
 {

@@ -2,32 +2,30 @@
 
 namespace URL_Shortcut.Utils.Database
 {
-    public class QueryURLHitCount
+    public class QueryUUIDBySignature
     {
-        public const long NOT_FOUND = -1;
         ISession session;
 
-        public QueryURLHitCount(ISession session)
+        public QueryUUIDBySignature(ISession session)
         {
             this.session = session;
         }
 
-        public bool GetURLHitCount(TimeUuid uuid, out long hits)
+        public bool GetUUIDBySignature(string signature, out TimeUuid uuid)
         {
-            var cql = "SELECT hit FROM tbl_hits WHERE uuid = ? ;";
+            var cql = "SELECT uuid FROM tbl_signatures WHERE signature = ? ;";
             var prep = this.session.Prepare(cql);
-            var stmt = prep.Bind(uuid);
+            var stmt = prep.Bind(signature);
             var rows = this.session.Execute(stmt);
 
             var row = CassandraHelper.GetFirstRow(rows);
 
             if (row == null)
             {
-                hits = NOT_FOUND;
                 return false;
             }
 
-            hits = row.GetValue<long>("hit");
+            uuid = row.GetValue<TimeUuid>("uuid");
 
             return true;
         }

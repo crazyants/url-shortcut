@@ -2,19 +2,18 @@
 
 namespace URL_Shortcut.Utils.Database
 {
-    public class QueryURLHitCount
+    public class QueryURLByUUID
     {
-        public const long NOT_FOUND = -1;
         ISession session;
 
-        public QueryURLHitCount(ISession session)
+        public QueryURLByUUID(ISession session)
         {
             this.session = session;
         }
 
-        public bool GetURLHitCount(TimeUuid uuid, out long hits)
+        public bool GetURLByUUID(TimeUuid uuid, out string url)
         {
-            var cql = "SELECT hit FROM tbl_hits WHERE uuid = ? ;";
+            var cql = "SELECT url FROM tbl_urls WHERE uuid = ? ;";
             var prep = this.session.Prepare(cql);
             var stmt = prep.Bind(uuid);
             var rows = this.session.Execute(stmt);
@@ -23,11 +22,11 @@ namespace URL_Shortcut.Utils.Database
 
             if (row == null)
             {
-                hits = NOT_FOUND;
+                url = string.Empty;
                 return false;
             }
 
-            hits = row.GetValue<long>("hit");
+            url = row.GetValue<string>("url");
 
             return true;
         }

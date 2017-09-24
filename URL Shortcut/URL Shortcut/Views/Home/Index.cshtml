@@ -1,10 +1,22 @@
-﻿<!DOCTYPE html>
+﻿@model URL_Shortcut.Models.POCOs.QueryResult
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <title>Home - URL Shortcut</title>
 </head>
 <body>
+    
+    @{ 
+        if (Model.URL != null)
+        {
+            <script type="text/javascript">
+                window.location.href = '@Model.URL';
+            </script>
+        }
+    }
     <h1>URL Shortcut</h1>
     <h2>Welcome to the URL Shortcut's homepage.</h2>
     <h3>APIs are all up and running.</h3>

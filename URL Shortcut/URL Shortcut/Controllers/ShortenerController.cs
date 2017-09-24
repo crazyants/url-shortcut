@@ -7,6 +7,7 @@ using URL_Shortcut.Models.POCOs;
 using URL_Shortcut.Utils;
 using URL_Shortcut.Utils.Database;
 using URL_Shortcut.Utils.Network;
+using System;
 
 namespace URL_Shortcut.Controllers
 {
@@ -21,8 +22,9 @@ namespace URL_Shortcut.Controllers
             APIResult result = new APIResult()
             {
                 Status = (int)APIStatus.Failure,
+                Message = "",
                 URL = url,
-                Signature = string.Empty,
+                Shortcut = string.Empty,
                 Popularity = 0
             };
 
@@ -40,23 +42,40 @@ namespace URL_Shortcut.Controllers
             SignatureLookup signatureLookup = new SignatureLookup(csSession);
             if (signatureLookup.LookupSignature(sha512, sha256, out string signature, out long hits))
             {
-                result.Signature = this.MakeShortcut(signature);
+                result.Shortcut = this.MakeShortcut(signature);
                 result.Popularity = hits;
                 result.Status = (int)APIStatus.Success;
                 return Json(result);
             }
 
             // Get total URL count from the running service
-            const string BOT = "<~BOT~>";
-            const string EOT = "<~EOT~>";
-            const string COMMAND_COUNT = "COUNT";
-            string message = string.Format("{0}{1}{2}", BOT, COMMAND_COUNT, EOT);
-            string ip = "127.0.0.1";
-            int port = 7079;
-            AsyncClientSocket asyncClientSocket = new AsyncClientSocket();
-            asyncClientSocket.Transmit(ip, port, message, out string response);
-            //SyncClientSocket.Transmit(ip, port, message, out string response);
-            long id = long.Parse(response);
+            long id = 0;
+            try
+            {
+                const string BOT = "<~BOT~>";
+                const string EOT = "<~EOT~>";
+                const string COMMAND_COUNT = "COUNT";
+
+                string message = string.Format("{0}{1}{2}", BOT, COMMAND_COUNT, EOT);
+                string ip = "127.0.0.1";
+                int port = 7079;
+
+                AsyncClientSocket asyncClientSocket = new AsyncClientSocket();
+                asyncClientSocket.Transmit(ip, port, message, out string response);
+                //SyncClientSocket.Transmit(ip, port, message, out string response);
+
+                if (response == string.Empty)
+                {
+                    result.Message = "Service Unavailable!";
+                    return Json(result);
+                }
+
+                id = long.Parse(response);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
 
             // Prepare dictionary
             char[] dictionary =
@@ -78,14 +97,14 @@ namespace URL_Shortcut.Controllers
             };
 
             // Get signature
-            string sign = BaseN.ChangeBase(id, dictionary);
+            signature = BaseN.ChangeBase(id, dictionary);
 
             // Unique signature is now set
-            result.Signature = this.MakeShortcut(sign);
+            result.Shortcut = this.MakeShortcut(signature);
 
             // Insert the new URL into the database
             URLInsertion urlInsertion = new URLInsertion(csSession);
-            if (urlInsertion.InsertURL(url, sign, sha512, sha256))
+            if (urlInsertion.InsertURL(url, signature, sha512, sha256))
             {
                 result.Popularity = 1;
                 result.Status = (int)APIStatus.Success;
