@@ -16,6 +16,8 @@ Change
 -- NetworkTopologyStrategy is the best for future expansion of the cluster. However, SimpleStrategy is used for development.
 -- replication_factor of 3 makes it reliable when there are four nodes in a datacenter. It increases availability.
 
+-- *NOTE* THIS PROJECT REQUIRES A CONSISTENT CASSANDRA CLUSTER CONFIGURATION. 'EVENTUALLY CONSISTENT' IS NOT ENOUGH!
+
 CREATE KEYSPACE url_shortcut WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': 3} ;
 
 									<-------------------------------------------------->

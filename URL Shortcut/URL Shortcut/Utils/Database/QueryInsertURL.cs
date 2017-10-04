@@ -11,6 +11,15 @@ namespace URL_Shortcut.Utils.Database
             this.session = session;
         }
 
+        /// <summary>
+        /// Insert a new URL into database.
+        /// </summary>
+        /// <param name="uuid">URL's TimeUUID</param>
+        /// <param name="url">Long URL</param>
+        /// <param name="signature">Short URL</param>
+        /// <param name="sha512">URL's SHA512</param>
+        /// <param name="sha256">URL's SHA256</param>
+        /// <returns>Returns true if operation was successful.</returns>
         public bool InsertURL(TimeUuid uuid, string url, string signature, string sha512, string sha256)
         {
             // Prepare the statements

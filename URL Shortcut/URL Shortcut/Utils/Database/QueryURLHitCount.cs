@@ -12,6 +12,12 @@ namespace URL_Shortcut.Utils.Database
             this.session = session;
         }
 
+        /// <summary>
+        /// Get URL popularity.
+        /// </summary>
+        /// <param name="uuid">URL's TimeUUID</param>
+        /// <param name="hits">URL popularity to be returned</param>
+        /// <returns>Returns true if operation was successful.</returns>
         public bool GetURLHitCount(TimeUuid uuid, out long hits)
         {
             var cql = "SELECT hit FROM tbl_hits WHERE uuid = ? ;";

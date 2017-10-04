@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Cassandra;
+using Microsoft.Extensions.Configuration;
 using System.IO;
-using Cassandra;
 
 namespace URL_Shortcut.Utils.Database
 {

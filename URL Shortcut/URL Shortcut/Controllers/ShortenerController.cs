@@ -1,13 +1,13 @@
 ﻿using Cassandra;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using System;
 using System.IO;
 using URL_Shortcut.Models;
 using URL_Shortcut.Models.POCOs;
 using URL_Shortcut.Utils;
 using URL_Shortcut.Utils.Database;
 using URL_Shortcut.Utils.Network;
-using System;
 
 namespace URL_Shortcut.Controllers
 {

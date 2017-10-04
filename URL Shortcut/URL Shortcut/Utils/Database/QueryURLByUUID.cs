@@ -11,6 +11,12 @@ namespace URL_Shortcut.Utils.Database
             this.session = session;
         }
 
+        /// <summary>
+        /// Get long URL by its UUID.
+        /// </summary>
+        /// <param name="uuid">URL's TimeUUID</param>
+        /// <param name="url">URL's long form to be returned</param>
+        /// <returns>Returns true if operation was successful.</returns>
         public bool GetURLByUUID(TimeUuid uuid, out string url)
         {
             var cql = "SELECT url FROM tbl_urls WHERE uuid = ? ;";

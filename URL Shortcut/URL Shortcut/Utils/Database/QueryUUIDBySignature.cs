@@ -11,6 +11,12 @@ namespace URL_Shortcut.Utils.Database
             this.session = session;
         }
 
+        /// <summary>
+        /// Get URL's UUID by its short form.
+        /// </summary>
+        /// <param name="signature">URL's short form</param>
+        /// <param name="uuid">URL's TimeUUID to be returned</param>
+        /// <returns>Returns true if operation was successful.</returns>
         public bool GetUUIDBySignature(string signature, out TimeUuid uuid)
         {
             var cql = "SELECT uuid FROM tbl_signatures WHERE signature = ? ;";
