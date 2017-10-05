@@ -19,7 +19,11 @@ namespace URL_Shortcut.Utils.Database
         /// <returns>Returns true if operation was successful.</returns>
         public bool GetURLByUUID(TimeUuid uuid, out string url)
         {
-            var cql = "SELECT url FROM tbl_urls WHERE uuid = ? ;";
+            var col = CassandraSchema.TABLE_URLS.URL;
+            var cql = string.Format("SELECT {0} FROM {1} WHERE {2} = ? ;",
+                col,
+                CassandraSchema.TABLE_URLS.TBL_URLS,
+                CassandraSchema.TABLE_URLS.UUID);
             var prep = this.session.Prepare(cql);
             var stmt = prep.Bind(uuid);
             var rows = this.session.Execute(stmt);
@@ -32,7 +36,7 @@ namespace URL_Shortcut.Utils.Database
                 return false;
             }
 
-            url = row.GetValue<string>("url");
+            url = row.GetValue<string>(col);
 
             return true;
         }

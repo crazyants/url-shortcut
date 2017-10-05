@@ -31,7 +31,11 @@ namespace URL_Shortcut.Utils.Database
             }
 
             // Increase the URL popularity by one
-            var cql = "UPDATE tbl_hits SET hit = hit + 1 WHERE uuid = ? ;";
+            var cql = string.Format("UPDATE {0} SET {1} = {1} + 1 WHERE {2} = ? ;",
+                CassandraSchema.TABLE_HITS.TBL_HITS,
+                CassandraSchema.TABLE_HITS.HIT,
+                CassandraSchema.TABLE_HITS.UUID);
+
             var prep = this.session.Prepare(cql);
             var stmt = prep.Bind(uuid);
             var rows = this.session.Execute(stmt);

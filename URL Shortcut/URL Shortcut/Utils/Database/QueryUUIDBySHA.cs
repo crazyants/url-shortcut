@@ -20,7 +20,12 @@ namespace URL_Shortcut.Utils.Database
         /// <returns>Returns true if operation was successful.</returns>
         public bool GetUUIDBySHA(string sha512, string sha256, out TimeUuid uuid)
         {
-            var cql = "SELECT uuid FROM tbl_hashes WHERE sha512 = ? AND sha256 = ? ;";
+            var col = CassandraSchema.TABLE_HASHES.UUID;
+            var cql = string.Format("SELECT {0} FROM {1} WHERE {2} = ? AND {3} = ? ;",
+                col,
+                CassandraSchema.TABLE_HASHES.TBL_HASHES,
+                CassandraSchema.TABLE_HASHES.SHA512,
+                CassandraSchema.TABLE_HASHES.SHA256);
             var prep = this.session.Prepare(cql);
             var stmt = prep.Bind(sha512, sha256);
             var rows = this.session.Execute(stmt);
@@ -32,7 +37,7 @@ namespace URL_Shortcut.Utils.Database
                 return false;
             }
 
-            uuid = row.GetValue<TimeUuid>("uuid");
+            uuid = row.GetValue<TimeUuid>(col);
 
             return true;
         }

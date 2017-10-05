@@ -20,7 +20,11 @@ namespace URL_Shortcut.Utils.Database
         /// <returns>Returns true if operation was successful.</returns>
         public bool GetURLHitCount(TimeUuid uuid, out long hits)
         {
-            var cql = "SELECT hit FROM tbl_hits WHERE uuid = ? ;";
+            var col = CassandraSchema.TABLE_HITS.HIT;
+            var cql = string.Format("SELECT {0} FROM {1} WHERE {2} = ? ;",
+                col,
+                CassandraSchema.TABLE_HITS.TBL_HITS,
+                CassandraSchema.TABLE_HITS.UUID);
             var prep = this.session.Prepare(cql);
             var stmt = prep.Bind(uuid);
             var rows = this.session.Execute(stmt);
@@ -33,7 +37,7 @@ namespace URL_Shortcut.Utils.Database
                 return false;
             }
 
-            hits = row.GetValue<long>("hit");
+            hits = row.GetValue<long>(col);
 
             return true;
         }

@@ -19,7 +19,11 @@ namespace URL_Shortcut.Utils.Database
         /// <returns>Returns true if operation was successful.</returns>
         public bool GetUUIDBySignature(string signature, out TimeUuid uuid)
         {
-            var cql = "SELECT uuid FROM tbl_signatures WHERE signature = ? ;";
+            var col = CassandraSchema.TABLE_SIGNATURES.UUID;
+            var cql = string.Format("SELECT {0} FROM {1} WHERE {2} = ? ;",
+                col,
+                CassandraSchema.TABLE_SIGNATURES.TBL_SIGNATURES,
+                CassandraSchema.TABLE_SIGNATURES.SIGNATURE);
             var prep = this.session.Prepare(cql);
             var stmt = prep.Bind(signature);
             var rows = this.session.Execute(stmt);
@@ -31,7 +35,7 @@ namespace URL_Shortcut.Utils.Database
                 return false;
             }
 
-            uuid = row.GetValue<TimeUuid>("uuid");
+            uuid = row.GetValue<TimeUuid>(col);
 
             return true;
         }
