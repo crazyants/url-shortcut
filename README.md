@@ -18,6 +18,10 @@ On the other hand, the service, upon start, is initialized by reading the counte
 
 Last but not least, the service must read the most updated data from database upon initialization. Hence, it establishes a connection with Consistency Level of ALL. This is an absolute necessity.
 
+***Why Cassandra?** Cassandra offers linear scalability. This means double performance cnould be achieved by doubling the number of nodes in a cluster or a data center. Moreover, all nodes are equally important where there is no master-slave configuration.*
+
+***Note:** The cluster configuration must be consistent. A cluster that is evantually consistent is not recommended.*
+
 ## Data Flow Diagram
 ![DFD: URL Shortcut](https://github.com/kamyar-nemati/url-shortcut/blob/master/DFD%20-%20URL_Shortcut.png?raw=true "DFD: URL Shortcut")
 
