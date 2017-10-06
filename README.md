@@ -7,6 +7,11 @@ I decided to challenge myself by implementing a URL shortener web application. I
 The first set of requirements are easily satisfiable by using Cassandra database. It's fast, reliable, and expandable. However,the real challenge was to implement an algorithm to provide real short URL or a unique signature translating that URL. The first idea might be a time-based approach. But that's not sufficient as UUIDs/GUIDs combine time, ip, version, and emergency code to make a unique identifier. UUIDs are long in characters and they are not the best to address our problem. Then I thought it might be a great idea to convert base from decimal to base 62 (upper case, lower case, and numbers). This is possible by maintaining a global counter that counts the total number of stored URL in the database. Although Cassandra offers counter table but it does not provide locking mechanism to prevent race condition. Hence I decided to implement a Windows Service in order to maintain a shared memory for the counter.
 
 ## Architecture
+The web application receives a shortening request from the user. First, it looks up the database to see if the given URL had been shorten before. If yes, short form will be queried and returned to the user. Otherwise, the application connects to the service and gets the total count. Then, it attempts to convert the number into base 62. The converted number is then used as the short form of that specific URL and it is stored in the database. The process of storing a new URL in database involves incrementing the counter table as well.
+
+On the other hand, the service, upon start, is initialized by reading the counter table and storing the counter value in memory. Upon every socket connection, the service locks the shared memory, it reads the value, increase the value by one, and then it unlocks the shared memory. The service communicates using AsyncSocket. It leads to a situation where each request is a thread. Therefore the locking mechanism is catered perfectly.
+
+Last but not least, the service must read the most updated data from database upon initialization. Hence, it establishes connection with Consistency Level of ALL.
 
 ## Data Flow Diagram
 ![DFD: URL Shortcut](https://github.com/kamyar-nemati/url-shortcut/blob/master/DFD%20-%20URL_Shortcut.png?raw=true "DFD: URL Shortcut")
