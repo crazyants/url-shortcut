@@ -2,8 +2,13 @@
 A simple URL shortener web API application.
 
 ## Repo Description
-I decided to challenge myself by implementing a URL shortener web application. I assumed the system would be serving lots of requests world-wide. Therefore it has to be fast, available, and expandable. Additionally, it has to generate short URL to be able to compete existing options in the market.
+I decided to challenge myself by implementing a URL shortener web application.
 
+### Problem Domain
+* I assumed the system would be serving lots of requests world-wide. Therefore it has to be fast, available, and expandable.
+* Additionally, it has to generate short URL to be able to compete existing options in the market.
+
+### Solution
 The first set of requirements are easily satisfiable by using Cassandra database. It's fast, reliable, and expandable. However,the real challenge is to implement an algorithm to provide really short URL or a unique signature identifying that URL. The first idea might be a time-based approach. But that's not sufficient as UUIDs/GUIDs combine time, ip, algorithm version, and emergency code to make a unique identifier. UUIDs are long in characters and they are not the best solution to our problem. Then I thought it might be a great idea to take advantage of base-62 (upper case, lower case, and numbers). This is possible by maintaining a global counter that counts the total number of stored URL in the database. Although Cassandra offers counter table but it does not provide locking mechanism to prevent race condition. Hence I decided to implement a Windows Service in order to maintain a shared memory for the global counter.
 
 ## Architecture
