@@ -1,8 +1,29 @@
 # Repository name: url-shortcut
-A flexible algorithm to provide a shorter string for a given URL.
+A simple URL shortener web API application.
+
+## Repo Description
+I decided to challenge myself by implementing a URL shortener web application. I assumed the system would be serving lots of requests world-wide. Therefore it has to be fast, available, and expandable. Additionally, it has to generate short URL to be able to compete existing services in the market.
+
+The first set of requirements are easily satisfiable by using Cassandra database. It's fast, reliable, and expandable. However,the real challenge was to implement an algorithm to provide real short URL or a unique signature translating that URL. The first idea might be a time-based approach. But that's not sufficient as UUIDs/GUIDs combine time, ip, version, and emergency code to make a unique identifier. UUIDs are long in characters and they are not the best to address our problem. Then I thought it might be a great idea to convert base from decimal to base 62 (upper case, lower case, and numbers). This is possible by maintaining a global counter that counts the total number of stored URL in the database. Although Cassandra offers counter table but it does not provide locking mechanism to prevent race condition. Hence I decided to implement a Windows Service in order to maintain a shared memory for the counter.
+
+## Architecture
 
 ## Data Flow Diagram
 ![DFD: URL Shortcut](https://github.com/kamyar-nemati/url-shortcut/blob/master/DFD%20-%20URL_Shortcut.png?raw=true "DFD: URL Shortcut")
 
 ## Screenshot
 ![URL Shortener API](https://user-images.githubusercontent.com/29518086/31230415-86e71f28-aa16-11e7-8876-2a74f2146dc4.PNG "URL Shortener API")
+
+## Projects
+1. URL Shortcut _(ASP.NET Core (WebAPI))_
+2. URL Shortcut Service _(Windows Service)_
+
+## Dependencies
+1. DotNet Core 2.0
+2. DotNET 4.7
+3. Cassandra database _(cqlsh)_
+4. CassandraCSharpDriver 3.3.2
+
+## Future Work
+1. URL validation; To validate input long URL before storing in database.
+2. Authentication; To implement a proceedure to issue authorization before processing user's input.
