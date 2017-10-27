@@ -46,7 +46,7 @@ Last but not least, the service must read the most updated data from database up
 2. Authentication; To implement a procedure to issue authorization before processing user's input.
 
 ## My Favorite Classes
-[AsyncServerSocket.cs](https://github.com/kamyar-nemati/url-shortcut/blob/master/URL%20Shortcut/URL%20Shortcut%20Service/AsyncServerSocket.cs)
-[AsyncClientSocket.cs](https://github.com/kamyar-nemati/url-shortcut/blob/master/URL%20Shortcut/URL%20Shortcut/Utils/Network/AsyncClientSocket.cs)
-[SyncClientSocket.cs](https://github.com/kamyar-nemati/url-shortcut/blob/master/URL%20Shortcut/URL%20Shortcut/Utils/Network/SyncClientSocket.cs)
-[CassandraConnection.cs](https://github.com/kamyar-nemati/url-shortcut/blob/master/URL%20Shortcut/URL%20Shortcut/Utils/Database/CassandraConnection.cs)
+* [AsyncServerSocket.cs](https://github.com/kamyar-nemati/url-shortcut/blob/master/URL%20Shortcut/URL%20Shortcut%20Service/AsyncServerSocket.cs)
+* [AsyncClientSocket.cs](https://github.com/kamyar-nemati/url-shortcut/blob/master/URL%20Shortcut/URL%20Shortcut/Utils/Network/AsyncClientSocket.cs)
+* [SyncClientSocket.cs](https://github.com/kamyar-nemati/url-shortcut/blob/master/URL%20Shortcut/URL%20Shortcut/Utils/Network/SyncClientSocket.cs)
+* [CassandraConnection.cs](https://github.com/kamyar-nemati/url-shortcut/blob/master/URL%20Shortcut/URL%20Shortcut/Utils/Database/CassandraConnection.cs)
