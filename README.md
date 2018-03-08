@@ -1,26 +1,28 @@
 # Repository name: url-shortcut
-A simple URL shortener web API application.
+A simple URL shortener Web API.
 
 ## Repo Description
-I decided to challenge myself by implementing a URL shortener web application.
+A URL shortener web application that provides short hash or code for any given string (URL).
 
 ### Problem Domain
-* I assumed the system would be serving lots of requests world-wide. Therefore it has to be fast, available, and expandable.
-* Additionally, it has to generate short URL to be able to compete existing options in the market.
+* The system shall be capable of serving lots of requests world-wide. Therefore, concurrency is important and it must be fast, reliable, and expandable.
+* The system must generate short URL to be able to compete existing options operating in the market.
 
 ### Solution
-The first set of requirements are easily satisfiable by using Cassandra database. It's fast, reliable, and expandable. However,the real challenge is to implement an algorithm to provide really short URL or a unique signature identifying that URL. The first idea might be a time-based approach. But that's not sufficient as UUIDs/GUIDs combine time, ip, algorithm version, and emergency code to make a unique identifier. UUIDs are long in characters and they are not the best solution to our problem. Then I thought it might be a great idea to take advantage of base-62 (upper case, lower case, and numbers). This is possible by maintaining a global counter that counts the total number of stored URL in the database. Although Cassandra offers counter table but it does not provide locking mechanism to prevent race condition. Hence I decided to implement a Windows Service in order to maintain a shared memory for the global counter.
+## Architecture and Data Flow
+The first requirement is easily satisfiable by using a distributed database such as Cassandra. The real challenge, however, is the second set of the requirements that is to implement an algorithm to provide short unique signature or hash for any given URL. The very first idea I got in mind in order to achive a really-short hash that is guaranteed to be unique was converting unique decimal numbers to another base like 16 (Hexadecimal). Nonetheless, base 16 can get bigger as we have 26 small and another 26 capital letters in our English alphabet, plus 10 numbers ready to serve our need. So now there is a way to conver unique decimals to unique hashes by translating them into base-62. Now we need to find a way to make unique decimal numbers.
 
-## Architecture
-The web application receives a shortening request from the user. First, it looks up the database to see if the given URL had been shortened before. If yes, short form will be queried and returned to the user. Otherwise, the application connects to the service and gets the total count. Then, it attempts to convert the number into base-62. The converted number is then used as the short form of that specific URL and it is stored in the database. The process of storing a new URL in database involves incrementing the counter table as well.
+I have decided to maintain a *Global Counter* that counts the total number of shortened/stored URLs in the database. As new shortening requests come in, the counter increases. Hence, each request can be provided with a unique decimal number or ID (starting from zero for the very first request as there is no shortened URL in the database at that moment). Although Cassandra offers Counter Table but it does not provide locking mechanism to prevent race condition in situations where there are concurrent requests.
 
-On the other hand, the service, upon start, is initialized by reading the counter table and storing the counter value in memory. Upon every socket connection, the service locks the shared memory, it reads the value, increases the value by one, and then it unlocks the shared memory. The service communicates through AsyncSocket. This leads to a situation where each request is on a separats thread. Therefore the locking mechanism is catered perfectly.
+In order to overcome the concurrency problem mentioned above, I have decided to implement a *Service* as a locking mechanism to control the Global Counter. In the following, I have described how the Service handles the Global Counter.
 
-Last but not least, the service must read the most updated data from database upon initialization. Hence, it establishes a connection with Consistency Level of ALL. This is an absolute necessity.
+The Service is initialized at the time when the website (Web API) is started by web server. Therefore, the life cycle of the Service is beyond the life cycle of each request that is sent to the website. Upon Service initiation, the value of the Global Counter is read and stored by the Service from the database. Each shortening request requires a *Read* operation that is followed by a *Write* operation. The Read is to read the value of the Global Counter from the Service by the request subroutine and the Write is to increament the counter by one. These two operations are atomic and the Service is locked during this atomic process. The original Global Counter that is stored in the database is updated by each request as well. Therefore, accidental or sudden termination of the Service is safe as it acquires the value of the Global Counter from the database.
+
+Since we now have the unique decimal number, we can convert it into base-62 and the resulting hash can be assigned to the URL for identification purposes. The hash is then returned to the client who made the request in the form of a shorter URL which includes the hash. Using the shorter URL, we can create an API on our website to accept the hash from the short URL and query the database to find the original URL and ultimately redirect the user or client to the designated location.
 
 ***Why Cassandra?** Cassandra offers linear scalability. This means double performance cnould be achieved by doubling the number of nodes in a cluster or a data center. Moreover, all nodes are equally important where there is no master-slave configuration.*
 
-***Note:** The cluster configuration must be consistent. A cluster that is evantually consistent is not recommended.*
+***Note:** The cluster configuration must be **Consistent**. A cluster that is **Evantually Consistent** is not recommended.*
 
 ## Data Flow Diagram
 ![DFD: URL Shortcut](https://github.com/kamyar-nemati/url-shortcut/blob/master/DFD%20-%20URL_Shortcut.png?raw=true "DFD: URL Shortcut")
