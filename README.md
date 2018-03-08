@@ -4,12 +4,12 @@ A simple URL shortener Web API.
 ## Repo Description
 A URL shortener web application that provides short hash or code for any given string (URL).
 
-### Problem Domain
+## Problem Domain
 * The system shall be capable of serving lots of requests world-wide. Therefore, concurrency is important and it must be fast, reliable, and expandable.
 * The system must generate short URL to be able to compete existing options operating in the market.
 
-### Solution
-## Architecture and Data Flow
+## Solution
+### Architecture and Data Flow
 The first requirement is easily satisfiable by using a distributed database such as Cassandra. The real challenge, however, is the second set of the requirements that is to implement an algorithm to provide short unique signature or hash for any given URL. The very first idea I got in mind in order to achive a really-short hash that is guaranteed to be unique was converting unique decimal numbers to another base like 16 (Hexadecimal). Nonetheless, base 16 can get bigger as we have 26 small and another 26 capital letters in our English alphabet, plus 10 numbers ready to serve our need. So now there is a way to conver unique decimals to unique hashes by translating them into base-62. Now we need to find a way to make unique decimal numbers.
 
 I have decided to maintain a *Global Counter* that counts the total number of shortened/stored URLs in the database. As new shortening requests come in, the counter increases. Hence, each request can be provided with a unique decimal number or ID (starting from zero for the very first request as there is no shortened URL in the database at that moment). Although Cassandra offers Counter Table but it does not provide locking mechanism to prevent race condition in situations where there are concurrent requests.
